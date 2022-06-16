@@ -1,0 +1,14 @@
+{
+  "name": "const",
+  "version": "1.0.0",
+  "description": "Constants",
+  "license": "MIT",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "codegen": "true",
+    "build": "true",
+    "prepare:moonriver": "mustache ../../config/moonriver.json index.template.ts > index.ts",
+    "prepare:moonbeam": "mustache ../../config/moonbeam.json index.template.ts > index.ts"
+  }
+}

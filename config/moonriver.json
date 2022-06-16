@@ -1,0 +1,23 @@
+{
+  "key": "moonriver",
+  "network": "moonriver",
+  "factory_address": "0xf36AE63d89983E3aeA8AaaD1086C3280eb01438D",
+  "zlk_address": "0x0f47ba9d9Bde3442b42175e51d6A367928A1173B",
+  "weth_usdc_pair": "0x042e54b2b28265a7ce171f97391334bd47fe384c",
+  "weth_address": "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+  "usdc_address": "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+  "farming_address": "0xAfaFf19679ab6baF75eD8098227Be189BA47ba0F",
+  "whitelist": [
+    "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+    "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    "0x639a647fbe20b6c8ac19e48e2de44ea792c62c5c",
+    "0xffffffff1fcacbd218edc0eba20fc2308c778080",
+    "0xffffffff893264794d9d57e1e0e21e0042af5a0a"
+  ],
+  "factory": {
+    "address": "0xf36AE63d89983E3aeA8AaaD1086C3280eb01438D",
+    "startBlock": "790834"
+  },
+  "minimum_usd_threshold_new_pairs": "3000",
+  "minimum_liquidity_threshold_eth": "5"
+}

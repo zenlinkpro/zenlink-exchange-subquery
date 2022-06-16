@@ -1,0 +1,79 @@
+specVersion: 1.0.0
+name: moonriver-exchange-subquery
+version: 1.0.0
+runner:
+  node:
+    name: "@subql/node"
+    version: ">=1.1.2"
+  query:
+    name: "@subql/query"
+    version: ">=1.1.1"
+description: This project can be use as a starting point for moonriver network.
+repository: https://github.com/zenlinkpro/zenlink-exchange-subquery
+schema:
+  file: ./schema.graphql
+network:
+  chainId: "0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" 
+  endpoint: wss://moonriver.api.onfinality.io/public-ws
+  dictionary: 'https://api.subquery.network/sq/subquery/moonriver-dictionary'
+  chaintypes:
+    file: ./dist/chaintypes.js
+dataSources:
+  - kind: substrate/Moonbeam
+    startBlock: 790834  
+    processor:
+      file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
+      options:
+        abi: Factory
+        address: '0xf36AE63d89983E3aeA8AaaD1086C3280eb01438D'
+      assets:
+        Factory:
+          file: ./abis/factory.json
+        ERC20:
+          file: ./abis/ERC20.json
+        ERC20SymbolBytes:
+          file: ./abis/ERC20SymbolBytes.json
+        ERC20NameBytes:
+          file: ./abis/ERC20NameBytes.json
+      mapping:
+        file: ./dist/index.js
+        handlers:
+          - handler: handleNewPair
+            kind: substrate/MoonbeamEvent
+            filter:
+              topics: PairCreated(indexed address,indexed address,address,uint256)
+templates:
+  - name: Pair
+    kind: substrate/Moonbeam
+    processor:
+      file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
+      options:
+        abi: Pair
+      assets:
+        Pair:
+          file: ./abis/pair.json
+        Factory:
+          file: ./abis/factory.json
+    mapping:
+      file: './dist/index.js'
+      handlers:
+        - handler: handleMint
+          kind: substrate/MoonbeamEvent
+          filter:
+            topics:
+              - Mint(indexed address,uint256,uint256)
+        - handler: handleBurn
+          kind: substrate/MoonbeamEvent
+          filter:
+            topics:
+              - Burn(indexed address,uint256,uint256,indexed address)
+        - handler: handleSwap
+          kind: substrate/MoonbeamEvent
+          filter:
+            topics:
+              - Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+        - handler: handleTransfer
+          kind: substrate/MoonbeamEvent
+          filter:
+            topics:
+              - Transfer(indexed address,indexed address,uint256)
