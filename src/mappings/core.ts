@@ -19,7 +19,6 @@ import {
   ZERO_BD,
   BN_18,
   createLiquiditySnapshot,
-  ZERO_BI,
   provider,
   numberToBigint,
   bigDecimalToNumber,

@@ -17,7 +17,7 @@ network:
   endpoint: wss://moonriver.api.onfinality.io/public-ws
   dictionary: 'https://api.subquery.network/sq/subquery/moonriver-dictionary'
   chaintypes:
-    file: ./dist/chaintypes.js
+    file: ./dist/src/chaintypes.js
 dataSources:
   - kind: substrate/Moonbeam
     startBlock: 790834  
@@ -36,7 +36,7 @@ dataSources:
         ERC20NameBytes:
           file: ./abis/ERC20NameBytes.json
       mapping:
-        file: ./dist/index.js
+        file: ./dist/src/index.js
         handlers:
           - handler: handleNewPair
             kind: substrate/MoonbeamEvent
@@ -55,7 +55,7 @@ templates:
         Factory:
           file: ./abis/factory.json
     mapping:
-      file: './dist/index.js'
+      file: './dist/src/index.js'
       handlers:
         - handler: handleMint
           kind: substrate/MoonbeamEvent
