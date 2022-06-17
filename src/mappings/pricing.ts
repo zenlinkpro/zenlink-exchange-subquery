@@ -1,8 +1,7 @@
 import { WETH_USDC_PAIR, WETH_ADDRESS, ADDRESS_ZERO, USDC_ADDRESS, WHITELIST } from '../../packages/constants'
 import { Pair, Token, Bundle } from '../types'
-import { BigDecimal, Address, BigInt } from '@graphprotocol/graph-ts/index'
-import { ZERO_BD, factoryContract, ONE_BD } from './helpers'
-import { BigNumber } from 'ethers'
+import { BigDecimal, Address } from '@graphprotocol/graph-ts/index'
+import { ZERO_BD, factoryContract, ONE_BD, numberToBigDecimal, bigDecimalToNumber } from './helpers'
 
 export async function getEthPriceInUSD(): Promise<BigDecimal> {
   let usdcPair = await Pair.get(WETH_USDC_PAIR)
@@ -10,8 +9,8 @@ export async function getEthPriceInUSD(): Promise<BigDecimal> {
   if (usdcPair !== null) {
     let isUsdcFirst = usdcPair.token0Id == USDC_ADDRESS
     return isUsdcFirst 
-      ? BigDecimal.fromString(usdcPair.token0Price.toString()) 
-      : BigDecimal.fromString(usdcPair.token1Price.toString())
+      ? numberToBigDecimal(usdcPair.token0Price)
+      : numberToBigDecimal(usdcPair.token1Price)
   } else {
     logger.warn('No usdcPair', [])
     return ZERO_BD
@@ -37,13 +36,13 @@ export async function findEthPerToken(token: Token): Promise<BigDecimal> {
     let pairAddress = factoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]))
     if (pairAddress.toHexString() != ADDRESS_ZERO.toHexString()) {
       let pair = await Pair.get(pairAddress.toHexString())
-      if (pair.token0Id == token.id && pair.reserveETH > BigNumber.from(MINIMUM_LIQUIDITY_THRESHOLD_ETH).toNumber()) {
+      if (pair.token0Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
         let token1 = await Token.get(pair.token1Id)
-        return BigDecimal.fromString((pair.token1Price * token1.derivedETH).toString()) // return token1 per our token * Eth per token 1
+        return numberToBigDecimal(pair.token1Price * token1.derivedETH) // return token1 per our token * Eth per token 1
       }
-      if (pair.token1Id == token.id && pair.reserveETH > BigNumber.from(MINIMUM_LIQUIDITY_THRESHOLD_ETH).toNumber()) {
+      if (pair.token1Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
         let token0 = await Token.get(pair.token0Id)
-        return BigDecimal.fromString((pair.token1Price * token0.derivedETH).toString()) // return token0 per our token * ETH per token 0
+        return numberToBigDecimal(pair.token1Price * token0.derivedETH) // return token0 per our token * ETH per token 0
       }
     }
   }
@@ -72,17 +71,17 @@ export async function getTrackedVolumeUSD(
     let reserve0USD = pair.reserve0 * price0
     let reserve1USD = pair.reserve1 * price1
     if (WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
-      if ((reserve0USD + reserve1USD) < BigNumber.from(MINIMUM_USD_THRESHOLD_NEW_PAIRS).toNumber()) {
+      if ((reserve0USD + reserve1USD) < bigDecimalToNumber(MINIMUM_USD_THRESHOLD_NEW_PAIRS)) {
         return ZERO_BD
       }
     }
     if (WHITELIST.includes(token0.id) && !WHITELIST.includes(token1.id)) {
-      if ((reserve0USD * 2) < BigNumber.from(MINIMUM_USD_THRESHOLD_NEW_PAIRS).toNumber()) {
+      if ((reserve0USD * 2) < bigDecimalToNumber(MINIMUM_USD_THRESHOLD_NEW_PAIRS)) {
         return ZERO_BD
       }
     }
     if (!WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
-      if ((reserve1USD * 2) < BigNumber.from(MINIMUM_USD_THRESHOLD_NEW_PAIRS).toNumber()) {
+      if ((reserve1USD * 2) < bigDecimalToNumber(MINIMUM_USD_THRESHOLD_NEW_PAIRS)) {
         return ZERO_BD
       }
     }
@@ -91,19 +90,19 @@ export async function getTrackedVolumeUSD(
   // both are whitelist tokens, take average of both amounts
   if (WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
     return tokenAmount0
-      .times(BigDecimal.fromString(price0.toString()))
-      .plus(tokenAmount1.times(BigDecimal.fromString(price1.toString())))
+      .times(numberToBigDecimal(price0))
+      .plus(tokenAmount1.times(numberToBigDecimal(price1)))
       .div(BigDecimal.fromString('2'))
   }
 
   // take full value of the whitelisted token amount
   if (WHITELIST.includes(token0.id) && !WHITELIST.includes(token1.id)) {
-    return tokenAmount0.times(BigDecimal.fromString(price0.toString()))
+    return tokenAmount0.times(numberToBigDecimal(price0))
   }
 
   // take full value of the whitelisted token amount
   if (!WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
-    return tokenAmount1.times(BigDecimal.fromString(price1.toString()))
+    return tokenAmount1.times(numberToBigDecimal(price1))
   }
 
   // neither token is on white list, tracked volume is 0
@@ -129,21 +128,21 @@ export async function getTrackedLiquidityUSD(
   // both are whitelist tokens, take average of both amounts
   if (WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
     return tokenAmount0
-      .times(BigDecimal.fromString(price0.toString()))
-      .plus(tokenAmount1.times(BigDecimal.fromString(price1.toString())))
+      .times(numberToBigDecimal(price0))
+      .plus(tokenAmount1.times(numberToBigDecimal(price1)))
   }
 
   // take double value of the whitelisted token amount
   if (WHITELIST.includes(token0.id) && !WHITELIST.includes(token1.id)) {
     return tokenAmount0
-      .times(BigDecimal.fromString(price0.toString()))
+      .times(numberToBigDecimal(price0))
       .times(BigDecimal.fromString('2'))
   }
 
   // take double value of the whitelisted token amount
   if (!WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
     return tokenAmount1
-      .times(BigDecimal.fromString(price1.toString()))
+      .times(numberToBigDecimal(price1))
       .times(BigDecimal.fromString('2'))
   }
 

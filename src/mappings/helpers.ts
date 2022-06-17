@@ -15,6 +15,7 @@ export let ONE_BI = BigInt.fromI32(1)
 export let ZERO_BD = BigDecimal.fromString('0')
 export let ONE_BD = BigDecimal.fromString('1')
 export let BI_18 = BigInt.fromI32(18)
+export let ZERO_BD_N = bigDecimalToNumber(ZERO_BD)
 
 export const provider =  new FrontierEthProvider()
 export const factoryContract = new Contract(FACTORY_ADDRESS.toHexString(), FactoryAbi, provider)
@@ -53,6 +54,30 @@ export function equalToZero(value: BigDecimal): boolean {
 
 export function isNullEthValue(value: string): boolean {
   return value == '0x0000000000000000000000000000000000000000000000000000000000000001'
+}
+
+export function bigDecimalToNumber(value: BigDecimal): number {
+  return BigNumber.from(value.toString()).toNumber()
+}
+
+export function numberToBigint(value: number): bigint {
+  return BigNumber.from(value).toBigInt()
+}
+
+export function bigintToBigInt(value: bigint): BigInt {
+  return BigInt.fromString(value.toString())
+}
+
+export function bigIntToBigint(value: BigInt): bigint {
+  return BigNumber.from(value.toString()).toBigInt()
+}
+
+export function numberToBigDecimal(value: number): BigDecimal {
+  return BigDecimal.fromString(BigNumber.from(value).toString())
+}
+
+export function bigNumberToBigInt(value: BigNumber): BigInt {
+  return BigInt.fromString(value.toString())
 }
 
 export async function fetchTokenSymbol(tokenAddress: Address): Promise<string> {
@@ -148,7 +173,7 @@ export async function createLiquidityPosition(exchange: Address, user: Address):
     let pair = await Pair.get(exchange.toHexString())
     pair.liquidityProviderCount = BigNumber.from(pair.liquidityProviderCount).add(ONE_BI).toBigInt()
     liquidityTokenBalance = new LiquidityPosition(id)
-    liquidityTokenBalance.liquidityTokenBalance = BigNumber.from(ZERO_BD).toNumber() 
+    liquidityTokenBalance.liquidityTokenBalance = bigDecimalToNumber(ZERO_BD) 
     liquidityTokenBalance.pairId = exchange.toHexString()
     liquidityTokenBalance.userId = user.toHexString()
     await liquidityTokenBalance.save()
@@ -156,14 +181,14 @@ export async function createLiquidityPosition(exchange: Address, user: Address):
   }
   if (liquidityTokenBalance === null)
     logger.error('LiquidityTokenBalance is null', [id])
-  return liquidityTokenBalance as LiquidityPosition
+  return liquidityTokenBalance
 }
 
 export async function createUser(address: Address): Promise<void> {
   let user = await User.get(address.toHexString())
   if (user === null) {
     user = new User(address.toHexString())
-    user.usdSwapped = BigNumber.from(ZERO_BD).toNumber()
+    user.usdSwapped = bigDecimalToNumber(ZERO_BD)
     await user.save()
   }
 }

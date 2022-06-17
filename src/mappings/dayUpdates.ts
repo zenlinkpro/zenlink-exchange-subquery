@@ -3,7 +3,7 @@ import { BigNumber } from 'ethers';
 import { BigInt } from '@graphprotocol/graph-ts'
 import { FACTORY_ADDRESS } from '../../packages/constants'
 import { Bundle, Pair, PairDayData, Token, TokenDayData, ZenlinkDayData, Factory, PairHourData } from '../types'
-import {ONE_BI, ZERO_BD, ZERO_BI } from './helpers'
+import { bigIntToBigint, ONE_BI, ZERO_BD_N, ZERO_BI } from './helpers'
 
 export async function updateUniswapDayData(event: MoonbeamEvent): Promise<ZenlinkDayData> {
   let uniswap = await Factory.get(FACTORY_ADDRESS.toHexString())
@@ -14,11 +14,11 @@ export async function updateUniswapDayData(event: MoonbeamEvent): Promise<Zenlin
   if (uniswapDayData === null) {
     uniswapDayData = new ZenlinkDayData(dayID.toString())
     uniswapDayData.date = dayStartTimestamp
-    uniswapDayData.dailyVolumeUSD = BigNumber.from(ZERO_BD).toNumber()
-    uniswapDayData.dailyVolumeETH = BigNumber.from(ZERO_BD).toNumber()
-    uniswapDayData.totalVolumeUSD = BigNumber.from(ZERO_BD).toNumber()
-    uniswapDayData.totalVolumeETH = BigNumber.from(ZERO_BD).toNumber()
-    uniswapDayData.dailyVolumeUntracked = BigNumber.from(ZERO_BD).toNumber()
+    uniswapDayData.dailyVolumeUSD = ZERO_BD_N
+    uniswapDayData.dailyVolumeETH = ZERO_BD_N
+    uniswapDayData.totalVolumeUSD = ZERO_BD_N
+    uniswapDayData.totalVolumeETH = ZERO_BD_N
+    uniswapDayData.dailyVolumeUntracked = ZERO_BD_N
   }
 
   uniswapDayData.totalLiquidityUSD = uniswap.totalLiquidityUSD
@@ -26,7 +26,7 @@ export async function updateUniswapDayData(event: MoonbeamEvent): Promise<Zenlin
   uniswapDayData.txCount = uniswap.txCount
   await uniswapDayData.save()
 
-  return uniswapDayData as ZenlinkDayData
+  return uniswapDayData
 }
 
 export async function updatePairDayData(event: MoonbeamEvent): Promise<PairDayData> {
@@ -44,20 +44,20 @@ export async function updatePairDayData(event: MoonbeamEvent): Promise<PairDayDa
     pairDayData.token0Id = pair.token0Id
     pairDayData.token1Id = pair.token1Id
     pairDayData.pairAddress = event.address
-    pairDayData.dailyVolumeToken0 = BigNumber.from(ZERO_BD).toNumber()
-    pairDayData.dailyVolumeToken1 = BigNumber.from(ZERO_BD).toNumber()
-    pairDayData.dailyVolumeUSD = BigNumber.from(ZERO_BD).toNumber()
-    pairDayData.dailyTxns = BigNumber.from(ZERO_BI).toBigInt()
+    pairDayData.dailyVolumeToken0 = ZERO_BD_N
+    pairDayData.dailyVolumeToken1 = ZERO_BD_N
+    pairDayData.dailyVolumeUSD = ZERO_BD_N
+    pairDayData.dailyTxns = bigIntToBigint(ZERO_BI)
   }
 
   pairDayData.totalSupply = pair.totalSupply
   pairDayData.reserve0 = pair.reserve0
   pairDayData.reserve1 = pair.reserve1
   pairDayData.reserveUSD = pair.reserveUSD
-  pairDayData.dailyTxns = BigNumber.from(pairDayData.dailyTxns).add(ONE_BI).toBigInt()
+  pairDayData.dailyTxns = BigNumber.from(pairDayData.dailyTxns.toString()).add(ONE_BI).toBigInt()
   await pairDayData.save()
 
-  return pairDayData as PairDayData
+  return pairDayData
 }
 
 export async function updatePairHourData(event: MoonbeamEvent): Promise<PairHourData> {
@@ -73,20 +73,20 @@ export async function updatePairHourData(event: MoonbeamEvent): Promise<PairHour
     pairHourData = new PairHourData(hourPairID)
     pairHourData.hourStartUnix = hourStartUnix
     pairHourData.pairId = event.address
-    pairHourData.hourlyVolumeToken0 = BigNumber.from(ZERO_BD).toNumber()
-    pairHourData.hourlyVolumeToken1 = BigNumber.from(ZERO_BD).toNumber()
-    pairHourData.hourlyVolumeUSD = BigNumber.from(ZERO_BD).toNumber()
-    pairHourData.hourlyTxns = BigNumber.from(ZERO_BI).toBigInt()
+    pairHourData.hourlyVolumeToken0 = ZERO_BD_N
+    pairHourData.hourlyVolumeToken1 = ZERO_BD_N
+    pairHourData.hourlyVolumeUSD = ZERO_BD_N
+    pairHourData.hourlyTxns = bigIntToBigint(ZERO_BI)
   }
 
   pairHourData.totalSupply = pair.totalSupply
   pairHourData.reserve0 = pair.reserve0
   pairHourData.reserve1 = pair.reserve1
   pairHourData.reserveUSD = pair.reserveUSD
-  pairHourData.hourlyTxns = BigNumber.from(pairHourData.hourlyTxns).add(ONE_BI).toBigInt()
+  pairHourData.hourlyTxns = BigNumber.from(pairHourData.hourlyTxns.toString()).add(ONE_BI).toBigInt()
   await pairHourData.save()
 
-  return pairHourData as PairHourData
+  return pairHourData
 }
 
 export async function updateTokenDayData(token: Token, event: MoonbeamEvent): Promise<TokenDayData> {
@@ -105,18 +105,18 @@ export async function updateTokenDayData(token: Token, event: MoonbeamEvent): Pr
     tokenDayData.date = dayStartTimestamp
     tokenDayData.tokenId = token.id
     tokenDayData.priceUSD = token.derivedETH * bundle.ethPrice
-    tokenDayData.dailyVolumeToken = BigNumber.from(ZERO_BD).toNumber()
-    tokenDayData.dailyVolumeETH = BigNumber.from(ZERO_BD).toNumber()
-    tokenDayData.dailyVolumeUSD = BigNumber.from(ZERO_BD).toNumber()
-    tokenDayData.dailyTxns = BigNumber.from(ZERO_BI).toBigInt()
-    tokenDayData.totalLiquidityUSD = BigNumber.from(ZERO_BD).toNumber()
+    tokenDayData.dailyVolumeToken = ZERO_BD_N
+    tokenDayData.dailyVolumeETH = ZERO_BD_N
+    tokenDayData.dailyVolumeUSD = ZERO_BD_N
+    tokenDayData.dailyTxns = bigIntToBigint(ZERO_BI)
+    tokenDayData.totalLiquidityUSD = ZERO_BD_N
   }
   tokenDayData.priceUSD = token.derivedETH * bundle.ethPrice
   tokenDayData.totalLiquidityToken = token.totalLiquidity
   tokenDayData.totalLiquidityETH = token.totalLiquidity * token.derivedETH
   tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityETH * bundle.ethPrice
-  tokenDayData.dailyTxns = BigNumber.from(tokenDayData.dailyTxns).add(ONE_BI).toBigInt()
+  tokenDayData.dailyTxns = BigNumber.from(tokenDayData.dailyTxns.toString()).add(ONE_BI).toBigInt()
   await tokenDayData.save()
 
-  return tokenDayData as TokenDayData
+  return tokenDayData
 }

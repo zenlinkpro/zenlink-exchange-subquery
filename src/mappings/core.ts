@@ -21,7 +21,14 @@ import {
   BI_18,
   createLiquiditySnapshot,
   ZERO_BI,
-  provider
+  provider,
+  numberToBigint,
+  bigDecimalToNumber,
+  bigintToBigInt,
+  ZERO_BD_N,
+  numberToBigDecimal,
+  bigNumberToBigInt,
+  bigIntToBigint
 } from './helpers'
 import { BigNumber, Contract } from 'ethers'
 import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
@@ -63,8 +70,8 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   let transaction = await Transaction.get(transactionHash)
   if (transaction === null) {
     transaction = new Transaction(transactionHash)
-    transaction.blockNumber = BigNumber.from(event.blockNumber).toBigInt()
-    transaction.timestamp = BigNumber.from(event.blockTimestamp.getTime()).toBigInt()
+    transaction.blockNumber = numberToBigint(event.blockNumber)
+    transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
     transaction.mintsId = []
     transaction.burnsId = []
     transaction.swapsId = []
@@ -74,7 +81,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   let mints = transaction.mintsId
   if (from == ADDRESS_ZERO.toHexString()) {
     // update total supply
-    pair.totalSupply = pair.totalSupply + BigNumber.from(value).toNumber()
+    pair.totalSupply = pair.totalSupply + bigDecimalToNumber(value)
     await pair.save()
 
     // create new mint if no mints so far or if last one is done already
@@ -87,7 +94,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       mint.transactionId = transaction.id
       mint.pairId = pair.id
       mint.to = to
-      mint.liquidity = BigNumber.from(value).toNumber()
+      mint.liquidity = bigDecimalToNumber(value)
       mint.timestamp = transaction.timestamp
       mint.transactionId = transaction.id
       await mint.save()
@@ -111,7 +118,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     )
     burn.transactionId = transaction.id
     burn.pairId = pair.id
-    burn.liquidity = BigNumber.from(value).toNumber()
+    burn.liquidity = bigDecimalToNumber(value)
     burn.timestamp = transaction.timestamp
     burn.to = event.args.to
     burn.sender = event.args.from
@@ -128,7 +135,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
   // burn
   if (event.args.to == ADDRESS_ZERO.toHexString() && event.args.from == pair.id) {
-    pair.totalSupply = pair.totalSupply - BigNumber.from(value).toNumber()
+    pair.totalSupply = pair.totalSupply - bigDecimalToNumber(value)
     await pair.save()
 
     // this is a new instance of a logical burn
@@ -147,7 +154,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
         burn.transactionId = transaction.id
         burn.needsComplete = false
         burn.pairId = pair.id
-        burn.liquidity = BigNumber.from(value).toNumber()
+        burn.liquidity = bigDecimalToNumber(value)
         burn.transactionId = transaction.id
         burn.timestamp = transaction.timestamp
       }
@@ -160,7 +167,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       burn.transactionId = transaction.id
       burn.needsComplete = false
       burn.pairId = pair.id
-      burn.liquidity = BigNumber.from(value).toNumber()
+      burn.liquidity = bigDecimalToNumber(value)
       burn.transactionId = transaction.id
       burn.timestamp = transaction.timestamp
     }
@@ -199,14 +206,14 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
   if (from != ADDRESS_ZERO.toHexString() && from != pair.id) {
     let fromUserLiquidityPosition = await createLiquidityPosition(Address.fromString(event.address), Address.fromString(from))
-    fromUserLiquidityPosition.liquidityTokenBalance = BigNumber.from(convertTokenToDecimal(await pairContract.balanceOf(from), BI_18)).toNumber()
+    fromUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(await pairContract.balanceOf(from), BI_18))
     await fromUserLiquidityPosition.save()
     await createLiquiditySnapshot(fromUserLiquidityPosition, event)
   }
 
   if (event.args.to != ADDRESS_ZERO.toHexString() && to != pair.id) {
     let toUserLiquidityPosition = await createLiquidityPosition(Address.fromString(event.address), Address.fromString(to))
-    toUserLiquidityPosition.liquidityTokenBalance = BigNumber.from( convertTokenToDecimal(pairContract.balanceOf(to), BI_18)).toNumber()
+    toUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(pairContract.balanceOf(to), BI_18))
     await toUserLiquidityPosition.save()
     await createLiquiditySnapshot(toUserLiquidityPosition, event)
   }
@@ -234,57 +241,57 @@ export async function handleSync(
   token1.totalLiquidity = token1.totalLiquidity - pair.reserve1
 
   pair.reserve0 = pair.reserve0 
-    + BigNumber.from(convertTokenToDecimal(amount0In, BigInt.fromI32(token0.decimals))).toNumber()
-    - BigNumber.from(convertTokenToDecimal(amount0Out, BigInt.fromI32(token0.decimals))).toNumber()
+    + bigDecimalToNumber(convertTokenToDecimal(amount0In, bigintToBigInt(token0.decimals)))
+    - bigDecimalToNumber(convertTokenToDecimal(amount0Out, bigintToBigInt(token0.decimals)))
   pair.reserve1 = pair.reserve1
-    +  BigNumber.from(convertTokenToDecimal(amount1In, BigInt.fromI32(token1.decimals))).toNumber()
-    - BigNumber.from(convertTokenToDecimal(amount1Out, BigInt.fromI32(token1.decimals))).toNumber()
+    + bigDecimalToNumber(convertTokenToDecimal(amount1In, bigintToBigInt(token1.decimals)))
+    - bigDecimalToNumber(convertTokenToDecimal(amount1Out, bigintToBigInt(token1.decimals)))
 
-  if (pair.reserve1 !== BigNumber.from(ZERO_BD).toNumber()) {
+  if (pair.reserve1 !== ZERO_BD_N) {
     pair.token0Price = pair.reserve0 / pair.reserve1
   } else {
-    pair.token0Price = BigNumber.from(ZERO_BD).toNumber()
+    pair.token0Price = ZERO_BD_N
   }
-  if (pair.reserve0 !== BigNumber.from(ZERO_BD).toNumber()) {
+  if (pair.reserve0 !== ZERO_BD_N) {
     pair.token1Price = pair.reserve1 / pair.reserve0
   } else {
-    pair.token1Price = BigNumber.from(ZERO_BD).toNumber()
+    pair.token1Price = ZERO_BD_N
   }
 
   await pair.save()
 
   // update ETH price now that reserves could have changed
   let bundle = await Bundle.get('1')
-  bundle.ethPrice = BigNumber.from(await getEthPriceInUSD()).toNumber()
+  bundle.ethPrice = bigDecimalToNumber(await getEthPriceInUSD())
   await bundle.save()
 
-  token0.derivedETH = BigNumber.from(await findEthPerToken(token0)).toNumber()
-  token1.derivedETH = BigNumber.from(await findEthPerToken(token1)).toNumber()
+  token0.derivedETH = bigDecimalToNumber(await findEthPerToken(token0))
+  token1.derivedETH = bigDecimalToNumber(await findEthPerToken(token1))
   await token0.save()
   await token1.save()
 
   // get tracked liquidity - will be 0 if neither is in whitelist
   let trackedLiquidityETH: BigDecimal
-  if (bundle.ethPrice !== BigNumber.from(ZERO_BD).toNumber()) {
-    trackedLiquidityETH =( await getTrackedLiquidityUSD(
-      BigDecimal.fromString(pair.reserve0.toString()), 
+  if (bundle.ethPrice !== ZERO_BD_N) {
+    trackedLiquidityETH =(await getTrackedLiquidityUSD(
+      numberToBigDecimal(pair.reserve0), 
       token0, 
-      BigDecimal.fromString(pair.reserve1.toString()), 
+      numberToBigDecimal(pair.reserve1), 
       token1
     )).div(
-      BigDecimal.fromString(bundle.ethPrice.toString())
+      numberToBigDecimal(bundle.ethPrice)
     )
   } else {
     trackedLiquidityETH = ZERO_BD
   }
 
   // use derived amounts within pair
-  pair.trackedReserveETH = BigNumber.from(trackedLiquidityETH).toNumber()
+  pair.trackedReserveETH = bigDecimalToNumber(trackedLiquidityETH)
   pair.reserveETH = (pair.reserve0 * token0.derivedETH) + (pair.reserve1 * token1.derivedETH)
   pair.reserveUSD = pair.reserveETH * bundle.ethPrice
 
   // use tracked amounts globally
-  uniswap.totalLiquidityETH = uniswap.totalLiquidityETH + BigNumber.from(trackedLiquidityETH).toNumber()
+  uniswap.totalLiquidityETH = uniswap.totalLiquidityETH + bigDecimalToNumber(trackedLiquidityETH)
   uniswap.totalLiquidityUSD = uniswap.totalLiquidityETH * bundle.ethPrice
 
   // now correctly set liquidity amounts for each token
@@ -301,8 +308,8 @@ export async function handleSync(
 export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<void> {
   await handleSync(
     Address.fromString(event.address), 
-    BigInt.fromString(event.args.amount0.toString()), 
-    BigInt.fromString(event.args.amount1.toString()), 
+    bigNumberToBigInt(event.args.amount0),
+    bigNumberToBigInt(event.args.amount1), 
     ZERO_BI, 
     ZERO_BI
   )
@@ -318,27 +325,27 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
 
   // update exchange info (except balances, sync will cover that)
   let token0Amount = convertTokenToDecimal(
-    BigInt.fromString(BigNumber.from(event.args.amount0).toString()), 
-    BigInt.fromString(token0.decimals.toString())
+    bigNumberToBigInt(event.args.amount0),
+    bigintToBigInt(token0.decimals)
   )
   let token1Amount = convertTokenToDecimal(
-    BigInt.fromString(BigNumber.from(event.args.amount1).toString()), 
-    BigInt.fromString(token1.decimals.toString())
+    bigNumberToBigInt(event.args.amount1),
+    bigintToBigInt(token1.decimals)
   )
 
   // update txn counts
-  token0.txCount = token0.txCount + BigNumber.from(ONE_BI).toBigInt()
-  token1.txCount = token1.txCount + BigNumber.from(ONE_BI).toBigInt()
+  token0.txCount = token0.txCount + bigIntToBigint(ONE_BI)
+  token1.txCount = token1.txCount + bigIntToBigint(ONE_BI)
 
   // get new amounts of USD and ETH for tracking
   let bundle = await Bundle.get('1')
-  let amountTotalUSD = ((token1.derivedETH * BigNumber.from(token1Amount).toNumber())
-    + (token0.derivedETH * BigNumber.from(token0Amount).toNumber()))
+  let amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
+    + (token0.derivedETH * bigDecimalToNumber(token0Amount)))
     * bundle.ethPrice
 
   // update txn counts
-  pair.txCount = pair.txCount + BigNumber.from(ONE_BI).toBigInt()
-  uniswap.txCount = uniswap.txCount + BigNumber.from(ONE_BI).toBigInt()
+  pair.txCount = pair.txCount + bigIntToBigint(ONE_BI)
+  uniswap.txCount = uniswap.txCount + bigIntToBigint(ONE_BI)
 
   // save entities
   await token0.save()
@@ -347,9 +354,9 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
   await uniswap.save()
 
   mint.sender = event.args.sender
-  mint.amount0 = BigNumber.from(token0Amount).toNumber()
-  mint.amount1 = BigNumber.from(token1Amount).toNumber()
-  mint.logIndex = BigNumber.from( event.logIndex).toBigInt()
+  mint.amount0 = bigDecimalToNumber(token0Amount)
+  mint.amount1 = bigDecimalToNumber(token1Amount)
+  mint.logIndex = numberToBigint(event.logIndex)
   mint.amountUSD = amountTotalUSD
   await mint.save()
 
@@ -370,8 +377,8 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
     Address.fromString(event.address), 
     ZERO_BI, 
     ZERO_BI, 
-    BigInt.fromString(event.args.amount0.toString()),
-    BigInt.fromString(event.args.amount1.toString())
+    bigNumberToBigInt(event.args.amount0),
+    bigNumberToBigInt(event.args.amount1)
   )
   let transaction = await Transaction.get(event.transactionHash)
 
@@ -390,27 +397,27 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
   let token0 = await Token.get(pair.token0Id)
   let token1 = await Token.get(pair.token1Id)
   let token0Amount = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount0.toString()),
-    BigInt.fromString(token0.decimals.toString())
+    bigNumberToBigInt(event.args.amount0),
+    bigintToBigInt(token0.decimals)
   )
   let token1Amount = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount1.toString()),
-    BigInt.fromString(token1.decimals.toString())
+    bigNumberToBigInt(event.args.amount1),
+    bigintToBigInt(token1.decimals)
   )
 
   // update txn counts
-  token0.txCount = token0.txCount + BigNumber.from(ONE_BI).toBigInt()
-  token1.txCount = token1.txCount + BigNumber.from(ONE_BI).toBigInt()
+  token0.txCount = token0.txCount + bigIntToBigint(ONE_BI)
+  token1.txCount = token1.txCount + bigIntToBigint(ONE_BI)
 
   // get new amounts of USD and ETH for tracking
   let bundle = await Bundle.get('1')
-  let amountTotalUSD = ((token1.derivedETH * BigNumber.from(token1Amount).toNumber())
-    + (token0.derivedETH * BigNumber.from(token0Amount).toNumber()))
+  let amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
+    + (token0.derivedETH * bigDecimalToNumber(token0Amount)))
     * bundle.ethPrice
 
   // update txn counts
-  uniswap.txCount = uniswap.txCount + BigNumber.from(ONE_BI).toBigInt()
-  pair.txCount = pair.txCount + BigNumber.from(ONE_BI).toBigInt()
+  uniswap.txCount = uniswap.txCount + bigIntToBigint(ONE_BI)
+  pair.txCount = pair.txCount + bigIntToBigint(ONE_BI)
 
   // update global counter and save
   await token0.save()
@@ -420,10 +427,10 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
 
   // update burn
   // burn.sender = event.params.sender
-  burn.amount0 = BigNumber.from(token0Amount).toNumber()
-  burn.amount1 = BigNumber.from(token1Amount).toNumber()
+  burn.amount0 = bigDecimalToNumber(token0Amount)
+  burn.amount1 = bigDecimalToNumber(token1Amount)
   // burn.to = event.params.to
-  burn.logIndex = BigNumber.from(event.logIndex).toBigInt()
+  burn.logIndex = numberToBigint(event.logIndex)
   burn.amountUSD = amountTotalUSD
   await burn.save()
 
@@ -445,29 +452,29 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
 export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<void> {
   await handleSync(
     Address.fromString(event.address), 
-    BigInt.fromString(event.args.amount0In.toString()), 
-    BigInt.fromString(event.args.amount1In.toString()), 
-    BigInt.fromString(event.args.amount0Out.toString()), 
-    BigInt.fromString(event.args.amount1Out.toString()), 
+    bigNumberToBigInt(event.args.amount0In),
+    bigNumberToBigInt(event.args.amount1In),
+    bigNumberToBigInt(event.args.amount0Out),
+    bigNumberToBigInt(event.args.amount1Out),
   )
   let pair = await Pair.get(event.address)
   let token0 = await Token.get(pair.token0Id)
   let token1 = await Token.get(pair.token1Id)
   let amount0In = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount0In.toString()), 
-    BigInt.fromString(token0.decimals.toString())
+    bigNumberToBigInt(event.args.amount0In),
+    bigintToBigInt(token0.decimals)
   )
   let amount1In = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount1In.toString()), 
-    BigInt.fromString(token1.decimals.toString())
+    bigNumberToBigInt(event.args.amount1In),
+    bigintToBigInt(token1.decimals)
   )
   let amount0Out = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount0Out.toString()), 
-    BigInt.fromString(token0.decimals.toString())
+    bigNumberToBigInt(event.args.amount0Out),
+    bigintToBigInt(token0.decimals)
   )
   let amount1Out = convertTokenToDecimal(
-    BigInt.fromString(event.args.amount1Out.toString()), 
-    BigInt.fromString(token1.decimals.toString())
+    bigNumberToBigInt(event.args.amount1Out),
+    bigintToBigInt(token1.decimals)
   )
 
   // totals for volume updates
@@ -478,7 +485,7 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   let bundle = await Bundle.get('1')
 
   // get total amounts of derived USD and ETH for tracking
-  let derivedAmountETH = (token1.derivedETH * BigNumber.from(amount1Total.toString()).toNumber()
+  let derivedAmountETH = (token1.derivedETH * bigDecimalToNumber(amount1Total)
     + (token0.derivedETH * BigNumber.from(amount0Total.toString()).toNumber()))
     / 2
   let derivedAmountUSD = derivedAmountETH * bundle.ethPrice
@@ -487,40 +494,40 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   let trackedAmountUSD = await getTrackedVolumeUSD(amount0Total, token0, amount1Total, token1, pair)
 
   let trackedAmountETH: BigDecimal
-  if (bundle.ethPrice == BigNumber.from(ZERO_BD.toString()).toNumber()) {
+  if (bundle.ethPrice == bigDecimalToNumber(ZERO_BD)) {
     trackedAmountETH = ZERO_BD
   } else {
-    trackedAmountETH = trackedAmountUSD.div(BigDecimal.fromString(bundle.ethPrice.toString()))
+    trackedAmountETH = trackedAmountUSD.div(numberToBigDecimal(bundle.ethPrice))
   }
 
   // update token0 global volume and token liquidity stats
-  token0.tradeVolume = token0.tradeVolume + BigNumber.from(amount0In.plus(amount0Out).toString()).toNumber()
-  token0.tradeVolumeUSD = token0.tradeVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  token0.untrackedVolumeUSD = token0.untrackedVolumeUSD + BigNumber.from(derivedAmountUSD.toString()).toNumber()
+  token0.tradeVolume = token0.tradeVolume + bigDecimalToNumber(amount0In.plus(amount0Out))
+  token0.tradeVolumeUSD = token0.tradeVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
+  token0.untrackedVolumeUSD = token0.untrackedVolumeUSD + derivedAmountUSD
 
   // update token1 global volume and token liquidity stats
-  token1.tradeVolume = token1.tradeVolume + BigNumber.from(amount1In.plus(amount1Out).toString()).toNumber()
-  token1.tradeVolumeUSD = token1.tradeVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  token1.untrackedVolumeUSD = token1.untrackedVolumeUSD + BigNumber.from(derivedAmountUSD.toString()).toNumber()
+  token1.tradeVolume = token1.tradeVolume + bigDecimalToNumber(amount1In.plus(amount1Out))
+  token1.tradeVolumeUSD = token1.tradeVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
+  token1.untrackedVolumeUSD = token1.untrackedVolumeUSD + derivedAmountUSD
 
   // update txn counts
-  token0.txCount = token0.txCount + BigNumber.from(ONE_BI).toBigInt()
-  token1.txCount = token1.txCount + BigNumber.from(ONE_BI).toBigInt()
+  token0.txCount = token0.txCount + bigIntToBigint(ONE_BI)
+  token1.txCount = token1.txCount + bigIntToBigint(ONE_BI)
 
   // update pair volume data, use tracked amount if we have it as its probably more accurate
-  pair.volumeUSD = pair.volumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  pair.volumeToken0 = pair.volumeToken0 + BigNumber.from(amount0Total.toString()).toNumber()
-  pair.volumeToken1 = pair.volumeToken1 + BigNumber.from(amount1Total.toString()).toNumber()
-  pair.untrackedVolumeUSD = pair.untrackedVolumeUSD + BigNumber.from(derivedAmountUSD.toString()).toNumber()
-  pair.txCount = pair.txCount + BigNumber.from(ONE_BI).toBigInt()
+  pair.volumeUSD = pair.volumeUSD + bigDecimalToNumber(trackedAmountUSD)
+  pair.volumeToken0 = pair.volumeToken0 + bigDecimalToNumber(amount0Total)
+  pair.volumeToken1 = pair.volumeToken1 + bigDecimalToNumber(amount1Total)
+  pair.untrackedVolumeUSD = pair.untrackedVolumeUSD + derivedAmountUSD
+  pair.txCount = pair.txCount + bigIntToBigint(ONE_BI)
   await pair.save()
 
   // update global values, only used tracked amounts for volume
   let uniswap = await Factory.get(FACTORY_ADDRESS.toHexString())
-  uniswap.totalVolumeUSD = uniswap.totalVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  uniswap.totalVolumeETH = uniswap.totalVolumeETH + BigNumber.from(trackedAmountETH.toString()).toNumber()
-  uniswap.untrackedVolumeUSD = uniswap.untrackedVolumeUSD + BigNumber.from(derivedAmountUSD.toString()).toNumber()
-  uniswap.txCount = uniswap.txCount + BigNumber.from(ONE_BI).toBigInt()
+  uniswap.totalVolumeUSD = uniswap.totalVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
+  uniswap.totalVolumeETH = uniswap.totalVolumeETH + bigDecimalToNumber(trackedAmountETH)
+  uniswap.untrackedVolumeUSD = uniswap.untrackedVolumeUSD + derivedAmountUSD
+  uniswap.txCount = uniswap.txCount + bigIntToBigint(ONE_BI)
 
   // save entities
   await pair.save()
@@ -531,8 +538,8 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   let transaction = await Transaction.get(event.transactionHash)
   if (transaction === null) {
     transaction = new Transaction(event.transactionHash)
-    transaction.blockNumber = BigNumber.from(event.blockNumber).toBigInt()
-    transaction.timestamp =  BigNumber.from(event.blockTimestamp.getTime()).toBigInt()
+    transaction.blockNumber = numberToBigint(event.blockNumber)
+    transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
     transaction.mintsId = []
     transaction.swapsId = []
     transaction.burnsId = []
@@ -550,16 +557,15 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   swap.timestamp = transaction.timestamp
   swap.transactionId = transaction.id
   swap.sender = event.args.sender
-  swap.amount0In = BigNumber.from(amount0In.toString()).toNumber()
-  swap.amount1In = BigNumber.from(amount1In.toString()).toNumber()
-  swap.amount0Out = BigNumber.from(amount0Out.toString()).toNumber()
-  swap.amount1Out = BigNumber.from(amount1Out.toString()).toNumber()
+  swap.amount0In = bigDecimalToNumber(amount0In)
+  swap.amount1In = bigDecimalToNumber(amount1In)
+  swap.amount0Out = bigDecimalToNumber(amount0Out)
+  swap.amount1Out = bigDecimalToNumber(amount1Out)
   swap.to = event.args.to
   swap.from = event.args.sender
-  swap.logIndex = BigNumber.from(event.logIndex).toBigInt()
+  swap.logIndex = numberToBigint(event.logIndex)
   // use the tracked amount if we have it
-  swap.amountUSD = trackedAmountUSD === ZERO_BD ? derivedAmountUSD : BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  await swap.save()
+  swap.amountUSD = trackedAmountUSD === ZERO_BD ? derivedAmountUSD : bigDecimalToNumber(trackedAmountUSD)
 
   // update the transaction
 
@@ -577,36 +583,36 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   let token1DayData = await updateTokenDayData(token1, event)
 
   // swap specific updating
-  uniswapDayData.dailyVolumeUSD = uniswapDayData.dailyVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
-  uniswapDayData.dailyVolumeETH = uniswapDayData.dailyVolumeETH + BigNumber.from(trackedAmountETH.toString()).toNumber()
+  uniswapDayData.dailyVolumeUSD = uniswapDayData.dailyVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
+  uniswapDayData.dailyVolumeETH = uniswapDayData.dailyVolumeETH +bigDecimalToNumber(trackedAmountETH)
   uniswapDayData.dailyVolumeUntracked = uniswapDayData.dailyVolumeUntracked + derivedAmountUSD
   await uniswapDayData.save()
 
   // swap specific updating for pair
-  pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0 + BigNumber.from(amount0Total.toString()).toNumber()
-  pairDayData.dailyVolumeToken1 = pairDayData.dailyVolumeToken1 + BigNumber.from(amount1Total.toString()).toNumber()
-  pairDayData.dailyVolumeUSD = pairDayData.dailyVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
+  pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0 + bigDecimalToNumber(amount0Total)
+  pairDayData.dailyVolumeToken1 = pairDayData.dailyVolumeToken1 + bigDecimalToNumber(amount1Total)
+  pairDayData.dailyVolumeUSD = pairDayData.dailyVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
   await pairDayData.save()
 
   // update hourly pair data
-  pairHourData.hourlyVolumeToken0 = pairHourData.hourlyVolumeToken0 + BigNumber.from(amount0Total.toString()).toNumber()
-  pairHourData.hourlyVolumeToken1 = pairHourData.hourlyVolumeToken1 + BigNumber.from(amount1Total.toString()).toNumber()
-  pairHourData.hourlyVolumeUSD = pairHourData.hourlyVolumeUSD + BigNumber.from(trackedAmountUSD.toString()).toNumber()
+  pairHourData.hourlyVolumeToken0 = pairHourData.hourlyVolumeToken0 + bigDecimalToNumber(amount0Total)
+  pairHourData.hourlyVolumeToken1 = pairHourData.hourlyVolumeToken1 + bigDecimalToNumber(amount1Total)
+  pairHourData.hourlyVolumeUSD = pairHourData.hourlyVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
   await pairHourData.save()
 
   // swap specific updating for token0
-  token0DayData.dailyVolumeToken = token0DayData.dailyVolumeToken + BigNumber.from(amount0Total.toString()).toNumber()
-  token0DayData.dailyVolumeETH = token0DayData.dailyVolumeETH + (BigNumber.from(amount0Total.toString()).toNumber() * token0.derivedETH)
+  token0DayData.dailyVolumeToken = token0DayData.dailyVolumeToken + bigDecimalToNumber(amount0Total)
+  token0DayData.dailyVolumeETH = token0DayData.dailyVolumeETH + (bigDecimalToNumber(amount0Total) * token0.derivedETH)
   token0DayData.dailyVolumeUSD = token0DayData.dailyVolumeUSD + (
-    BigNumber.from(amount0Total.toString()).toNumber() * token0.derivedETH * bundle.ethPrice
+    bigDecimalToNumber(amount0Total) * token0.derivedETH * bundle.ethPrice
   )
   await token0DayData.save()
 
   // swap specific updating
-  token1DayData.dailyVolumeToken = token1DayData.dailyVolumeToken + BigNumber.from(amount1Total.toString()).toNumber()
-  token1DayData.dailyVolumeETH = token1DayData.dailyVolumeETH + (BigNumber.from(amount1Total.toString()).toNumber() * token1.derivedETH)
+  token1DayData.dailyVolumeToken = token1DayData.dailyVolumeToken + bigDecimalToNumber(amount1Total)
+  token1DayData.dailyVolumeETH = token1DayData.dailyVolumeETH + (bigDecimalToNumber(amount1Total) * token1.derivedETH)
   token1DayData.dailyVolumeUSD = token1DayData.dailyVolumeUSD + (
-    BigNumber.from(amount1Total.toString()).toNumber() *  token0.derivedETH * bundle.ethPrice
+    bigDecimalToNumber(amount1Total) *  token0.derivedETH * bundle.ethPrice
   )
   await token1DayData.save()
 }
