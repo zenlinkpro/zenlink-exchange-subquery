@@ -16,8 +16,8 @@ export let ZERO_BD = BigDecimal.fromString('0')
 export let ONE_BD = BigDecimal.fromString('1')
 export let BI_18 = BigInt.fromI32(18)
 
-const provider =  new FrontierEthProvider()
-export let factoryContract = new Contract(FACTORY_ADDRESS.toHexString(), FactoryAbi, provider)
+export const provider =  new FrontierEthProvider()
+export const factoryContract = new Contract(FACTORY_ADDRESS.toHexString(), FactoryAbi, provider)
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = BigDecimal.fromString('1')
@@ -59,17 +59,17 @@ export async function fetchTokenSymbol(tokenAddress: Address): Promise<string> {
   // static definitions overrides
   let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
   if(staticDefinition != null) {
-    return (staticDefinition as TokenDefinition).symbol
+    return staticDefinition.symbol
   }
 
   let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
-  let contractSymbolBytes =  new Contract(tokenAddress.toHexString(), ERC20SymbolBytesAbi, provider)
+  let contractSymbolBytes = new Contract(tokenAddress.toHexString(), ERC20SymbolBytesAbi, provider)
 
   // try types string and bytes32 for symbol
   let symbolValue = 'unknown'
-  let symbolResult = await contract.try_symbol()
+  let symbolResult = await contract.symbol()
   if (symbolResult.reverted) {
-    let symbolResultBytes = await contractSymbolBytes.try_symbol()
+    let symbolResultBytes = await contractSymbolBytes.symbol()
     if (!symbolResultBytes.reverted) {
       // for broken pairs that have no symbol function exposed
       if (!isNullEthValue(symbolResultBytes.value.toHexString())) {
@@ -87,7 +87,7 @@ export async function fetchTokenName(tokenAddress: Address): Promise<string> {
   // static definitions overrides
   let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
   if(staticDefinition != null) {
-    return (staticDefinition as TokenDefinition).name
+    return staticDefinition.name
   }
 
   let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
@@ -95,9 +95,9 @@ export async function fetchTokenName(tokenAddress: Address): Promise<string> {
 
   // try types string and bytes32 for name
   let nameValue = 'unknown'
-  let nameResult = await contract.try_name()
+  let nameResult = await contract.name()
   if (nameResult.reverted) {
-    let nameResultBytes = await contractNameBytes.try_name()
+    let nameResultBytes = await contractNameBytes.name()
     if (!nameResultBytes.reverted) {
       // for broken exchanges that have no name function exposed
       if (!isNullEthValue(nameResultBytes.value.toHexString())) {
@@ -114,7 +114,7 @@ export async function fetchTokenName(tokenAddress: Address): Promise<string> {
 export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
   let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
   let totalSupplyValue: BigInt
-  let totalSupplyResult = contract.try_totalSupply()
+  let totalSupplyResult = contract.totalSupply()
   if (!totalSupplyResult.reverted) {
     totalSupplyValue = totalSupplyResult.value
   }
@@ -125,13 +125,13 @@ export async function fetchTokenDecimals(tokenAddress: Address): Promise<BigInt>
   // static definitions overrides
   let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
   if(staticDefinition != null) {
-    return (staticDefinition as TokenDefinition).decimals
+    return staticDefinition.decimals
   }
 
   let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
   // try types uint8 for decimals
   let decimalValue: number
-  let decimalResult = await contract.try_decimals()
+  let decimalResult = await contract.decimals()
   if (!decimalResult.reverted) {
     decimalValue = decimalResult.value
   }
@@ -154,7 +154,8 @@ export async function createLiquidityPosition(exchange: Address, user: Address):
     await liquidityTokenBalance.save()
     await pair.save()
   }
-  if (liquidityTokenBalance === null) logger.error('LiquidityTokenBalance is null', [id])
+  if (liquidityTokenBalance === null)
+    logger.error('LiquidityTokenBalance is null', [id])
   return liquidityTokenBalance as LiquidityPosition
 }
 

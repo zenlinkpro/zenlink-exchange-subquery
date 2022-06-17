@@ -1,8 +1,4 @@
-/* eslint-disable prefer-const */
-import {
-  Address,
-  BigInt,
-} from "@graphprotocol/graph-ts"
+import { Address, BigInt } from "@graphprotocol/graph-ts"
 
 // Initialize a Token Definition with the attributes
 export class TokenDefinition {
