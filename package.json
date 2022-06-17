@@ -1,7 +1,7 @@
 {
   "name": "zenlink-blocks-subquery",
   "version": "1.0.0",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "private": true,
   "scripts": {
     "build": "tsc -b",
