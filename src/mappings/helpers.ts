@@ -1,46 +1,46 @@
-import { BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts'
 import { User, Bundle, Token, LiquidityPosition, LiquidityPositionSnapshot, Pair } from '../types'
 import FactoryAbi from '../../abis/factory.json'
 import ERC20Abi from '../../abis/ERC20.json'
 import ERC20SymbolBytesAbi from '../../abis/ERC20SymbolBytes.json'
 import ERC20NameBytesAbi from  '../../abis/ERC20NameBytes.json'
-import { TokenDefinition } from './tokenDefinition'
 import { FACTORY_ADDRESS } from '../../packages/constants'
 import { BigNumber, Contract } from 'ethers'
 import { FrontierEthProvider } from '@subql/frontier-evm-processor'
 import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
+import BigDecimal from 'bignumber.js'
 
-export let ZERO_BI = BigInt.fromI32(0)
-export let ONE_BI = BigInt.fromI32(1)
-export let ZERO_BD = BigDecimal.fromString('0')
-export let ONE_BD = BigDecimal.fromString('1')
-export let BI_18 = BigInt.fromI32(18)
-export let ZERO_BD_N = bigDecimalToNumber(ZERO_BD)
+export let ZERO_BN = BigNumber.from(0)
+export let ONE_BN = BigNumber.from(1)
+export let ZERO_BD = new BigDecimal(0)
+export let ONE_BD = new BigDecimal(1)
+export let ZERO_BI = BigInt(0)
+export let ONE_BI = BigInt(1)
+export let BN_18 = BigNumber.from(18)
 
 export const provider =  new FrontierEthProvider()
-export const factoryContract = new Contract(FACTORY_ADDRESS.toHexString(), FactoryAbi, provider)
+export const factoryContract = new Contract(FACTORY_ADDRESS, FactoryAbi, provider)
 
-export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
-  let bd = BigDecimal.fromString('1')
-  for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
-    bd = bd.times(BigDecimal.fromString('10'))
+export function exponentToBigDecimal(decimals: BigNumber): BigDecimal {
+  let bd = ONE_BD
+  for (let i = 0; i < decimals.toNumber(); i++) {
+    bd = bd.times(new BigDecimal('10'))
   }
   return bd
 }
 
 export function bigDecimalExp18(): BigDecimal {
-  return BigDecimal.fromString('1000000000000000000')
+  return new BigDecimal('1000000000000000000')
 }
 
-export function convertEthToDecimal(eth: BigInt): BigDecimal {
-  return eth.toBigDecimal().div(exponentToBigDecimal(new BigInt(18)))
+export function convertEthToDecimal(eth: BigNumber): BigDecimal {
+  return new BigDecimal(eth.toString()).div(exponentToBigDecimal(BigNumber.from('18')))
 }
 
-export function convertTokenToDecimal(tokenAmount: BigInt, exchangeDecimals: BigInt): BigDecimal {
-  if (exchangeDecimals == ZERO_BI) {
-    return tokenAmount.toBigDecimal()
+export function convertTokenToDecimal(tokenAmount: BigNumber, exchangeDecimals: BigNumber): BigDecimal {
+  if (exchangeDecimals == ZERO_BN) {
+    return new BigDecimal(tokenAmount.toString())
   }
-  return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimals))
+  return new BigDecimal(tokenAmount.toString()).div(exponentToBigDecimal(exchangeDecimals))
 }
 
 export function equalToZero(value: BigDecimal): boolean {
@@ -64,31 +64,13 @@ export function numberToBigint(value: number): bigint {
   return BigNumber.from(value).toBigInt()
 }
 
-export function bigintToBigInt(value: bigint): BigInt {
-  return BigInt.fromString(value.toString())
-}
-
-export function bigIntToBigint(value: BigInt): bigint {
-  return BigNumber.from(value.toString()).toBigInt()
-}
-
 export function numberToBigDecimal(value: number): BigDecimal {
-  return BigDecimal.fromString(BigNumber.from(value).toString())
+  return new BigDecimal(BigNumber.from(value).toString())
 }
 
-export function bigNumberToBigInt(value: BigNumber): BigInt {
-  return BigInt.fromString(value.toString())
-}
-
-export async function fetchTokenSymbol(tokenAddress: Address): Promise<string> {
-  // static definitions overrides
-  let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
-  if(staticDefinition != null) {
-    return staticDefinition.symbol
-  }
-
-  let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
-  let contractSymbolBytes = new Contract(tokenAddress.toHexString(), ERC20SymbolBytesAbi, provider)
+export async function fetchTokenSymbol(tokenAddress: string): Promise<string> {
+  let contract = new Contract(tokenAddress, ERC20Abi, provider)
+  let contractSymbolBytes = new Contract(tokenAddress, ERC20SymbolBytesAbi, provider)
 
   // try types string and bytes32 for symbol
   let symbolValue = 'unknown'
@@ -108,15 +90,9 @@ export async function fetchTokenSymbol(tokenAddress: Address): Promise<string> {
   return symbolValue
 }
 
-export async function fetchTokenName(tokenAddress: Address): Promise<string> {
-  // static definitions overrides
-  let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
-  if(staticDefinition != null) {
-    return staticDefinition.name
-  }
-
-  let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
-  let contractNameBytes =  new Contract(tokenAddress.toHexString(), ERC20NameBytesAbi, provider)
+export async function fetchTokenName(tokenAddress: string): Promise<string> {
+  let contract = new Contract(tokenAddress, ERC20Abi, provider)
+  let contractNameBytes =  new Contract(tokenAddress, ERC20NameBytesAbi, provider)
 
   // try types string and bytes32 for name
   let nameValue = 'unknown'
@@ -136,46 +112,37 @@ export async function fetchTokenName(tokenAddress: Address): Promise<string> {
   return nameValue
 }
 
-export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
-  let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
-  let totalSupplyValue: BigInt
-  let totalSupplyResult = contract.totalSupply()
+export async function fetchTokenTotalSupply(tokenAddress: string): Promise<BigNumber> {
+  let contract = new Contract(tokenAddress, ERC20Abi, provider)
+  let totalSupplyValue: BigNumber
+  let totalSupplyResult = await contract.totalSupply()
   if (!totalSupplyResult.reverted) {
     totalSupplyValue = totalSupplyResult.value
   }
   return totalSupplyValue
 }
 
-export async function fetchTokenDecimals(tokenAddress: Address): Promise<BigInt> {
-  // static definitions overrides
-  let staticDefinition = TokenDefinition.fromAddress(tokenAddress)
-  if(staticDefinition != null) {
-    return staticDefinition.decimals
-  }
-
-  let contract = new Contract(tokenAddress.toHexString(), ERC20Abi, provider)
+export async function fetchTokenDecimals(tokenAddress: string): Promise<BigNumber> {
+  let contract = new Contract(tokenAddress, ERC20Abi, provider)
   // try types uint8 for decimals
   let decimalValue: number
   let decimalResult = await contract.decimals()
   if (!decimalResult.reverted) {
     decimalValue = decimalResult.value
   }
-  return BigInt.fromI32(decimalValue)
+  return BigNumber.from(decimalValue)
 }
 
-export async function createLiquidityPosition(exchange: Address, user: Address): Promise<LiquidityPosition> {
-  let id = exchange
-    .toHexString()
-    .concat('-')
-    .concat(user.toHexString())
+export async function createLiquidityPosition(exchange: string, user: string): Promise<LiquidityPosition> {
+  let id = exchange.concat('-').concat(user)
   let liquidityTokenBalance = await LiquidityPosition.get(id)
   if (liquidityTokenBalance === null) {
-    let pair = await Pair.get(exchange.toHexString())
-    pair.liquidityProviderCount = BigNumber.from(pair.liquidityProviderCount).add(ONE_BI).toBigInt()
+    let pair = await Pair.get(exchange)
+    pair.liquidityProviderCount = BigNumber.from(pair.liquidityProviderCount).add(ONE_BN).toBigInt()
     liquidityTokenBalance = new LiquidityPosition(id)
     liquidityTokenBalance.liquidityTokenBalance = bigDecimalToNumber(ZERO_BD) 
-    liquidityTokenBalance.pairId = exchange.toHexString()
-    liquidityTokenBalance.userId = user.toHexString()
+    liquidityTokenBalance.pairId = exchange
+    liquidityTokenBalance.userId = user
     await liquidityTokenBalance.save()
     await pair.save()
   }
@@ -184,10 +151,10 @@ export async function createLiquidityPosition(exchange: Address, user: Address):
   return liquidityTokenBalance
 }
 
-export async function createUser(address: Address): Promise<void> {
-  let user = await User.get(address.toHexString())
+export async function createUser(address: string): Promise<void> {
+  let user = await User.get(address)
   if (user === null) {
-    user = new User(address.toHexString())
+    user = new User(address)
     user.usdSwapped = bigDecimalToNumber(ZERO_BD)
     await user.save()
   }

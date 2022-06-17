@@ -1,14 +1,11 @@
-import { Address } from '@graphprotocol/graph-ts'
 import { FACTORY_ADDRESS } from '../../packages/constants'
 import { Bundle, Pair, Token, Factory, createPairDatasource } from '../types'
 import {
-  bigIntToBigint,
   fetchTokenDecimals,
   fetchTokenName,
   fetchTokenSymbol,
   fetchTokenTotalSupply,
   numberToBigint,
-  ZERO_BD_N,
   ZERO_BI,
 } from './helpers'
 import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
@@ -17,20 +14,20 @@ type PairCreatedEventArgs = [string, string, string] & { token0: string, token1:
 
 export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>): Promise<void> {
   // load factory (create if first exchange)
-  let factory = await Factory.get(FACTORY_ADDRESS.toHexString())
+  let factory = await Factory.get(FACTORY_ADDRESS)
   if (factory === null) {
-    factory = new Factory(FACTORY_ADDRESS.toHexString())
+    factory = new Factory(FACTORY_ADDRESS)
     factory.pairCount = 0
-    factory.totalVolumeETH =ZERO_BD_N
-    factory.totalLiquidityETH = ZERO_BD_N
-    factory.totalVolumeUSD = ZERO_BD_N
-    factory.untrackedVolumeUSD = ZERO_BD_N
-    factory.totalLiquidityUSD = ZERO_BD_N
-    factory.txCount = bigIntToBigint(ZERO_BI)
+    factory.totalVolumeETH =0
+    factory.totalLiquidityETH = 0
+    factory.totalVolumeUSD = 0
+    factory.untrackedVolumeUSD = 0
+    factory.totalLiquidityUSD = 0
+    factory.txCount = ZERO_BI
 
     // create new bundle
     let bundle = new Bundle('1')
-    bundle.ethPrice = ZERO_BD_N
+    bundle.ethPrice = 0
     bundle.save()
   }
   factory.pairCount = factory.pairCount + 1
@@ -43,10 +40,10 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
   // fetch info if null
   if (token0 === null) {
     token0 = new Token(event.args.token0)
-    token0.symbol = await fetchTokenSymbol(Address.fromString(event.args.token0))
-    token0.name = await fetchTokenName(Address.fromString(event.args.token0))
-    token0.totalSupply = bigIntToBigint(await fetchTokenTotalSupply(Address.fromString(event.args.token0)))
-    let decimals = await fetchTokenDecimals(Address.fromString(event.args.token0))
+    token0.symbol = await fetchTokenSymbol(event.args.token0)
+    token0.name = await fetchTokenName(event.args.token0)
+    token0.totalSupply = (await fetchTokenTotalSupply(event.args.token0)).toBigInt()
+    let decimals = await fetchTokenDecimals(event.args.token0)
 
     // bail if we couldn't figure out the decimals
     if (decimals === null) {
@@ -54,55 +51,55 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
       return
     }
 
-    token0.decimals = bigIntToBigint(decimals)
-    token0.derivedETH = ZERO_BD_N
-    token0.tradeVolume = ZERO_BD_N
-    token0.tradeVolumeUSD = ZERO_BD_N
-    token0.untrackedVolumeUSD = ZERO_BD_N
-    token0.totalLiquidity = ZERO_BD_N
-    token0.txCount = bigIntToBigint(ZERO_BI)
+    token0.decimals = decimals.toBigInt()
+    token0.derivedETH = 0
+    token0.tradeVolume = 0
+    token0.tradeVolumeUSD = 0
+    token0.untrackedVolumeUSD = 0
+    token0.totalLiquidity = 0
+    token0.txCount = ZERO_BI
   }
 
   // fetch info if null
   if (token1 === null) {
     token1 = new Token(event.args.token1)
-    token1.symbol = await fetchTokenSymbol(Address.fromString(event.args.token1))
-    token1.name = await fetchTokenName(Address.fromString(event.args.token1))
-    token1.totalSupply = bigIntToBigint(await fetchTokenTotalSupply(Address.fromString(event.args.token1)))
-    let decimals = await fetchTokenDecimals(Address.fromString(event.args.token1))
+    token1.symbol = await fetchTokenSymbol(event.args.token1)
+    token1.name = await fetchTokenName(event.args.token1)
+    token1.totalSupply = (await fetchTokenTotalSupply(event.args.token1)).toBigInt()
+    let decimals = await fetchTokenDecimals(event.args.token1)
 
     // bail if we couldn't figure out the decimals
     if (decimals === null) {
       return
     }
-    token1.decimals = bigIntToBigint(decimals)
-    token1.derivedETH = ZERO_BD_N
-    token1.tradeVolume =ZERO_BD_N
-    token1.tradeVolumeUSD = ZERO_BD_N
-    token1.untrackedVolumeUSD =ZERO_BD_N
-    token1.totalLiquidity = ZERO_BD_N
-    token1.txCount = bigIntToBigint(ZERO_BI)
+    token1.decimals = decimals.toBigInt()
+    token1.derivedETH = 0
+    token1.tradeVolume =0
+    token1.tradeVolumeUSD = 0
+    token1.untrackedVolumeUSD =0
+    token1.totalLiquidity = 0
+    token1.txCount = ZERO_BI
   }
 
   let pair = new Pair(event.args.pair)
   pair.token0Id = token0.id
   pair.token1Id = token1.id
-  pair.liquidityProviderCount = bigIntToBigint(ZERO_BI)
+  pair.liquidityProviderCount = ZERO_BI
   pair.createdAtTimestamp = numberToBigint(event.blockTimestamp.getTime())
   pair.createdAtBlockNumber = numberToBigint(event.blockNumber)
-  pair.txCount = bigIntToBigint(ZERO_BI)
-  pair.reserve0 = ZERO_BD_N
-  pair.reserve1 = ZERO_BD_N
-  pair.trackedReserveETH = ZERO_BD_N
-  pair.reserveETH = ZERO_BD_N
-  pair.reserveUSD = ZERO_BD_N
-  pair.totalSupply = ZERO_BD_N
-  pair.volumeToken0 = ZERO_BD_N
-  pair.volumeToken1 = ZERO_BD_N
-  pair.volumeUSD = ZERO_BD_N
-  pair.untrackedVolumeUSD = ZERO_BD_N
-  pair.token0Price = ZERO_BD_N
-  pair.token1Price = ZERO_BD_N
+  pair.txCount = ZERO_BI
+  pair.reserve0 = 0
+  pair.reserve1 = 0
+  pair.trackedReserveETH = 0
+  pair.reserveETH = 0
+  pair.reserveUSD = 0
+  pair.totalSupply = 0
+  pair.volumeToken0 = 0
+  pair.volumeToken1 = 0
+  pair.volumeUSD = 0
+  pair.untrackedVolumeUSD = 0
+  pair.token0Price = 0
+  pair.token1Price = 0
 
   // create the tracked contract based on the template
   await createPairDatasource({address: event.args.pair})

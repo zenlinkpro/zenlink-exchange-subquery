@@ -1,7 +1,7 @@
 import { WETH_USDC_PAIR, WETH_ADDRESS, ADDRESS_ZERO, USDC_ADDRESS, WHITELIST } from '../../packages/constants'
 import { Pair, Token, Bundle } from '../types'
-import { BigDecimal, Address } from '@graphprotocol/graph-ts/index'
 import { ZERO_BD, factoryContract, ONE_BD, numberToBigDecimal, bigDecimalToNumber } from './helpers'
+import BigDecimal from 'bignumber.js'
 
 export async function getEthPriceInUSD(): Promise<BigDecimal> {
   let usdcPair = await Pair.get(WETH_USDC_PAIR)
@@ -18,23 +18,23 @@ export async function getEthPriceInUSD(): Promise<BigDecimal> {
 }
 
 // minimum liquidity required to count towards tracked volume for pairs with small # of Lps
-let MINIMUM_USD_THRESHOLD_NEW_PAIRS = BigDecimal.fromString('3000')
+let MINIMUM_USD_THRESHOLD_NEW_PAIRS = new BigDecimal('3000')
 
 // minimum liquidity for price to get tracked
-let MINIMUM_LIQUIDITY_THRESHOLD_ETH = BigDecimal.fromString('5')
+let MINIMUM_LIQUIDITY_THRESHOLD_ETH = new BigDecimal('5')
 
 /**
  * Search through graph to find derived Eth per token.
  * @todo update to be derived ETH (add stablecoin estimates)
  **/
 export async function findEthPerToken(token: Token): Promise<BigDecimal> {
-  if (token.id == WETH_ADDRESS.toHexString()) {
+  if (token.id == WETH_ADDRESS) {
     return ONE_BD
   }
   // loop through whitelist and check if paired with any
   for (let i = 0; i < WHITELIST.length; ++i) {
-    let pairAddress = factoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]))
-    if (pairAddress.toHexString() != ADDRESS_ZERO.toHexString()) {
+    let pairAddress = factoryContract.getPair(token.id, WHITELIST[i])
+    if (pairAddress != ADDRESS_ZERO) {
       let pair = await Pair.get(pairAddress.toHexString())
       if (pair.token0Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
         let token1 = await Token.get(pair.token1Id)
@@ -92,7 +92,7 @@ export async function getTrackedVolumeUSD(
     return tokenAmount0
       .times(numberToBigDecimal(price0))
       .plus(tokenAmount1.times(numberToBigDecimal(price1)))
-      .div(BigDecimal.fromString('2'))
+      .div(new BigDecimal('2'))
   }
 
   // take full value of the whitelisted token amount
@@ -136,14 +136,14 @@ export async function getTrackedLiquidityUSD(
   if (WHITELIST.includes(token0.id) && !WHITELIST.includes(token1.id)) {
     return tokenAmount0
       .times(numberToBigDecimal(price0))
-      .times(BigDecimal.fromString('2'))
+      .times(new BigDecimal('2'))
   }
 
   // take double value of the whitelisted token amount
   if (!WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {
     return tokenAmount1
       .times(numberToBigDecimal(price1))
-      .times(BigDecimal.fromString('2'))
+      .times(new BigDecimal('2'))
   }
 
   // neither token is on white list, tracked volume is 0

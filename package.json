@@ -8,6 +8,7 @@
     "prepack": "rm -rf dist && yarn build",
     "test": "jest",
     "codegen": "./node_modules/.bin/subql codegen",
+    "docker": "rm -rf .data && docker-compose pull && docker-compose up",
     "prepare:moonriver": "yarn workspaces run prepare:moonriver",
     "prepare:moonbeam": "yarn workspaces run prepare:moonbeam",
     "deploy:moonriver": "subql publish -f moonriver.yaml",
@@ -30,7 +31,6 @@
     "ipfs-unixfs": "6.0.6"
   },
   "devDependencies": {
-    "@graphprotocol/graph-ts": "^0.27.0",
     "@polkadot/api": "^7.12.1",
     "@subql/cli": "latest",
     "@subql/contract-processors": "^0.5.4",
@@ -39,12 +39,13 @@
     "@subql/types": "latest",
     "@typescript-eslint/eslint-plugin": "^5.28.0",
     "@typescript-eslint/parser": "^5.28.0",
+    "bignumber.js": "^9.0.2",
     "ejs": "^3.1.6",
     "ethers": "^5.6.8",
     "handlebars": "^4.7.7",
     "moonbeam-types-bundle": "^2.0.3",
     "mustache": "^4.2.0",
-    "typescript": "^4.6.2"
+    "typescript": "^4.0.0"
   },
   "exports": {
     "chaintypes": "./src/chaintypes.ts"
