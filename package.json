@@ -1,5 +1,5 @@
 {
-  "name": "zenlink-blocks-subquery",
+  "name": "zenlink-exchange-subquery",
   "version": "1.0.0",
   "main": "dist/index.js",
   "private": true,

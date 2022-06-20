@@ -20,11 +20,11 @@ export class Transaction implements Entity {
 
     public timestamp: bigint;
 
-    public mintsId: string[];
+    public mints: string[];
 
-    public burnsId: string[];
+    public burns: string[];
 
-    public swapsId: string[];
+    public swaps: string[];
 
 
     async save(): Promise<void>{
@@ -47,27 +47,6 @@ export class Transaction implements Entity {
         }
     }
 
-
-    static async getByMintsId(mintsId: string): Promise<Transaction[] | undefined>{
-      
-      const records = await store.getByField('Transaction', 'mintsId', mintsId);
-      return records.map(record => Transaction.create(record as TransactionProps));
-      
-    }
-
-    static async getByBurnsId(burnsId: string): Promise<Transaction[] | undefined>{
-      
-      const records = await store.getByField('Transaction', 'burnsId', burnsId);
-      return records.map(record => Transaction.create(record as TransactionProps));
-      
-    }
-
-    static async getBySwapsId(swapsId: string): Promise<Transaction[] | undefined>{
-      
-      const records = await store.getByField('Transaction', 'swapsId', swapsId);
-      return records.map(record => Transaction.create(record as TransactionProps));
-      
-    }
 
 
     static create(record: TransactionProps): Transaction {

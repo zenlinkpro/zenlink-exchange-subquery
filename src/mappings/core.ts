@@ -68,13 +68,13 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     transaction = new Transaction(transactionHash)
     transaction.blockNumber = numberToBigint(event.blockNumber)
     transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
-    transaction.mintsId = []
-    transaction.burnsId = []
-    transaction.swapsId = []
+    transaction.mints = []
+    transaction.burns = []
+    transaction.swaps = []
   }
 
   // mints
-  let mints = transaction.mintsId
+  let mints = transaction.mints
   if (from == ADDRESS_ZERO) {
     // update total supply
     pair.totalSupply = pair.totalSupply + bigDecimalToNumber(value)
@@ -87,7 +87,6 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
           .concat('-')
           .concat(BigNumber.from(mints.length).toString())
       )
-      mint.transactionId = transaction.id
       mint.pairId = pair.id
       mint.to = to
       mint.liquidity = bigDecimalToNumber(value)
@@ -96,7 +95,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       await mint.save()
 
       // update mints in transaction
-      transaction.mintsId = mints.concat([mint.id])
+      transaction.mints = mints.concat([mint.id])
 
       // save entities
       await transaction.save()
@@ -106,13 +105,12 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
   // case where direct send first on ETH withdrawls
   if (event.args.to == pair.id) {
-    let burns = transaction.burnsId
+    let burns = transaction.burns
     let burn = new BurnEvent(
       event.transactionHash
         .concat('-')
         .concat(BigNumber.from(burns.length).toString())
     )
-    burn.transactionId = transaction.id
     burn.pairId = pair.id
     burn.liquidity = bigDecimalToNumber(value)
     burn.timestamp = transaction.timestamp
@@ -125,7 +123,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     // TODO: Consider using .concat() for handling array updates to protect
     // against unintended side effects for other code paths.
     burns.push(burn.id)
-    transaction.burnsId = burns
+    transaction.burns = burns
     await transaction.save()
   }
 
@@ -135,7 +133,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     await pair.save()
 
     // this is a new instance of a logical burn
-    let burns = transaction.burnsId
+    let burns = transaction.burns
     let burn: BurnEvent
     if (burns.length > 0) {
       let currentBurn = await BurnEvent.get(burns[burns.length - 1])
@@ -147,7 +145,6 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
             .concat('-')
             .concat(BigNumber.from(burns.length).toString())
         )
-        burn.transactionId = transaction.id
         burn.needsComplete = false
         burn.pairId = pair.id
         burn.liquidity = bigDecimalToNumber(value)
@@ -160,7 +157,6 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
           .concat('-')
           .concat(BigNumber.from(burns.length).toString())
       )
-      burn.transactionId = transaction.id
       burn.needsComplete = false
       burn.pairId = pair.id
       burn.liquidity = bigDecimalToNumber(value)
@@ -180,7 +176,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       // TODO: Consider using .slice().pop() to protect against unintended
       // side effects for other code paths.
       mints.pop()
-      transaction.mintsId = mints
+      transaction.mints = mints
       await transaction.save()
     }
     await burn.save()
@@ -196,7 +192,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       // against unintended side effects for other code paths.
       burns.push(burn.id)
     }
-    transaction.burnsId = burns
+    transaction.burns = burns
     await transaction.save()
   }
 
@@ -310,7 +306,7 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
     ZERO_BN
   )
   let transaction = await Transaction.get(event.transactionHash)
-  let mints = transaction.mintsId
+  let mints = transaction.mints
   let mint = await MintEvent.get(mints[mints.length - 1])
 
   let pair = await Pair.get(event.address)
@@ -377,7 +373,7 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
     return
   }
 
-  let burns = transaction.burnsId
+  let burns = transaction.burns
   let burn = await BurnEvent.get(burns[burns.length - 1])
 
   let pair = await Pair.get(event.address)
@@ -509,11 +505,11 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
     transaction = new Transaction(event.transactionHash)
     transaction.blockNumber = numberToBigint(event.blockNumber)
     transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
-    transaction.mintsId = []
-    transaction.swapsId = []
-    transaction.burnsId = []
+    transaction.mints = []
+    transaction.swaps = []
+    transaction.burns = []
   }
-  let swaps = transaction.swapsId
+  let swaps = transaction.swaps
   let swap = new SwapEvent(
     event.transactionHash
       .concat('-')
@@ -521,7 +517,6 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   )
 
   // update swap event
-  swap.transactionId = transaction.id
   swap.pairId = pair.id
   swap.timestamp = transaction.timestamp
   swap.transactionId = transaction.id
@@ -541,7 +536,7 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   // TODO: Consider using .concat() for handling array updates to protect
   // against unintended side effects for other code paths.
   swaps.push(swap.id)
-  transaction.swapsId = swaps
+  transaction.swaps = swaps
   await transaction.save()
 
   // update day entities

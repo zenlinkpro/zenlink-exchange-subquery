@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: moonriver-exchange-subquery
+name: zenlink-exchange-subquery
 version: 1.0.0
 runner:
   node:
@@ -20,28 +20,29 @@ network:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Moonbeam
-    startBlock: 790834  
+    startBlock: 790833
     processor:
       file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
       options:
         abi: Factory
         address: '0xf36AE63d89983E3aeA8AaaD1086C3280eb01438D'
-      assets:
-        Factory:
-          file: ./abis/factory.json
-        ERC20:
-          file: ./abis/ERC20.json
-        ERC20SymbolBytes:
-          file: ./abis/ERC20SymbolBytes.json
-        ERC20NameBytes:
-          file: ./abis/ERC20NameBytes.json
-      mapping:
-        file: ./dist/index.js
-        handlers:
-          - handler: handleNewPair
-            kind: substrate/MoonbeamEvent
-            filter:
-              topics: PairCreated(indexed address,indexed address,address,uint256)
+    assets:
+      Factory:
+        file: ./abis/factory.json
+      ERC20:
+        file: ./abis/ERC20.json
+      ERC20SymbolBytes:
+        file: ./abis/ERC20SymbolBytes.json
+      ERC20NameBytes:
+        file: ./abis/ERC20NameBytes.json
+    mapping:
+      file: ./dist/index.js
+      handlers:
+        - handler: handleNewPair
+          kind: substrate/MoonbeamEvent
+          filter:
+            topics: 
+              - PairCreated(indexed address,indexed address,address,uint256)
 templates:
   - name: Pair
     kind: substrate/Moonbeam
@@ -49,11 +50,11 @@ templates:
       file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
       options:
         abi: Pair
-      assets:
-        Pair:
-          file: ./abis/pair.json
-        Factory:
-          file: ./abis/factory.json
+    assets:
+      Pair:
+        file: ./abis/pair.json
+      Factory:
+        file: ./abis/factory.json
     mapping:
       file: './dist/index.js'
       handlers:
