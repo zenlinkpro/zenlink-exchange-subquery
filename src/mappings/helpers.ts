@@ -1,12 +1,12 @@
 import { User, Bundle, Token, LiquidityPosition, LiquidityPositionSnapshot, Pair } from '../types'
-import FactoryAbi from '../../abis/factory.json'
-import ERC20Abi from '../../abis/ERC20.json'
-import ERC20SymbolBytesAbi from '../../abis/ERC20SymbolBytes.json'
-import ERC20NameBytesAbi from  '../../abis/ERC20NameBytes.json'
-import { FACTORY_ADDRESS } from '../../packages/constants'
+import FactoryAbi from '../abis/factory.json'
+import ERC20Abi from '../abis/ERC20.json'
+import ERC20SymbolBytesAbi from '../abis/ERC20SymbolBytes.json'
+import ERC20NameBytesAbi from  '../abis/ERC20NameBytes.json'
+import { FACTORY_ADDRESS } from '../constants'
 import { BigNumber, Contract } from 'ethers'
 import { FrontierEthProvider } from '@subql/frontier-evm-processor'
-import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
+import { MoonbeamEvent } from '@subql/moonbeam-evm-processor'
 import BigDecimal from 'bignumber.js'
 
 export let ZERO_BN = BigNumber.from(0)
@@ -75,16 +75,13 @@ export async function fetchTokenSymbol(tokenAddress: string): Promise<string> {
   // try types string and bytes32 for symbol
   let symbolValue = 'unknown'
   let symbolResult = await contract.symbol()
-  if (symbolResult.reverted) {
+  if (!symbolResult) {
     let symbolResultBytes = await contractSymbolBytes.symbol()
-    if (!symbolResultBytes.reverted) {
-      // for broken pairs that have no symbol function exposed
-      if (!isNullEthValue(symbolResultBytes.value.toHexString())) {
-        symbolValue = symbolResultBytes.value.toString()
-      }
+    if (symbolResultBytes) {
+      symbolValue = symbolResultBytes
     }
   } else {
-    symbolValue = symbolResult.value
+    symbolValue = symbolResult
   }
 
   return symbolValue
@@ -97,16 +94,13 @@ export async function fetchTokenName(tokenAddress: string): Promise<string> {
   // try types string and bytes32 for name
   let nameValue = 'unknown'
   let nameResult = await contract.name()
-  if (nameResult.reverted) {
+  if (!nameResult) {
     let nameResultBytes = await contractNameBytes.name()
-    if (!nameResultBytes.reverted) {
-      // for broken exchanges that have no name function exposed
-      if (!isNullEthValue(nameResultBytes.value.toHexString())) {
-        nameValue = nameResultBytes.value.toString()
-      }
+    if (nameResultBytes) {
+      nameValue = nameResultBytes
     }
   } else {
-    nameValue = nameResult.value
+    nameValue = nameResult
   }
 
   return nameValue
@@ -116,8 +110,8 @@ export async function fetchTokenTotalSupply(tokenAddress: string): Promise<BigNu
   let contract = new Contract(tokenAddress, ERC20Abi, provider)
   let totalSupplyValue: BigNumber
   let totalSupplyResult = await contract.totalSupply()
-  if (!totalSupplyResult.reverted) {
-    totalSupplyValue = totalSupplyResult.value
+  if (totalSupplyResult) {
+    totalSupplyValue = totalSupplyResult
   }
   return totalSupplyValue
 }
@@ -125,18 +119,18 @@ export async function fetchTokenTotalSupply(tokenAddress: string): Promise<BigNu
 export async function fetchTokenDecimals(tokenAddress: string): Promise<BigNumber> {
   let contract = new Contract(tokenAddress, ERC20Abi, provider)
   // try types uint8 for decimals
-  let decimalValue: number
+  let decimalValue: BigNumber
   let decimalResult = await contract.decimals()
-  if (!decimalResult.reverted) {
-    decimalValue = decimalResult.value
+  if (decimalResult) {
+    decimalValue = BigNumber.from(decimalResult.toString())
   }
-  return BigNumber.from(decimalValue)
+  return decimalValue
 }
 
 export async function createLiquidityPosition(exchange: string, user: string): Promise<LiquidityPosition> {
   let id = exchange.concat('-').concat(user)
   let liquidityTokenBalance = await LiquidityPosition.get(id)
-  if (liquidityTokenBalance === null) {
+  if (!liquidityTokenBalance) {
     let pair = await Pair.get(exchange)
     pair.liquidityProviderCount = BigNumber.from(pair.liquidityProviderCount).add(ONE_BN).toBigInt()
     liquidityTokenBalance = new LiquidityPosition(id)
@@ -146,14 +140,14 @@ export async function createLiquidityPosition(exchange: string, user: string): P
     await liquidityTokenBalance.save()
     await pair.save()
   }
-  if (liquidityTokenBalance === null)
+  if (!liquidityTokenBalance)
     logger.error('LiquidityTokenBalance is null', [id])
   return liquidityTokenBalance
 }
 
 export async function createUser(address: string): Promise<void> {
   let user = await User.get(address)
-  if (user === null) {
+  if (!user) {
     user = new User(address)
     user.usdSwapped = bigDecimalToNumber(ZERO_BD)
     await user.save()

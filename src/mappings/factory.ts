@@ -1,4 +1,4 @@
-import { FACTORY_ADDRESS } from '../../packages/constants'
+import { FACTORY_ADDRESS } from '../constants'
 import { Bundle, Pair, Token, Factory, createPairDatasource } from '../types'
 import {
   fetchTokenDecimals,
@@ -8,14 +8,14 @@ import {
   numberToBigint,
   ZERO_BI,
 } from './helpers'
-import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
+import { MoonbeamEvent } from '@subql/moonbeam-evm-processor'
 
 type PairCreatedEventArgs = [string, string, string] & { token0: string, token1: string, pair: string }
 
 export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>): Promise<void> {
   // load factory (create if first exchange)
   let factory = await Factory.get(FACTORY_ADDRESS)
-  if (factory === null) {
+  if (!factory) {
     factory = new Factory(FACTORY_ADDRESS)
     factory.pairCount = 0
     factory.totalVolumeETH =0
@@ -28,7 +28,7 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
     // create new bundle
     let bundle = new Bundle('1')
     bundle.ethPrice = 0
-    bundle.save()
+    await bundle.save()
   }
   factory.pairCount = factory.pairCount + 1
   await factory.save()
@@ -38,15 +38,15 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
   let token1 = await Token.get(event.args.token1)
 
   // fetch info if null
-  if (token0 === null) {
+  if (!token0) {
     token0 = new Token(event.args.token0)
     token0.symbol = await fetchTokenSymbol(event.args.token0)
     token0.name = await fetchTokenName(event.args.token0)
     token0.totalSupply = (await fetchTokenTotalSupply(event.args.token0)).toBigInt()
-    let decimals = await fetchTokenDecimals(event.args.token0)
+    const decimals = await fetchTokenDecimals(event.args.token0)
 
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (!decimals) {
       logger.debug('mybug the decimal on token 0 was null', [])
       return
     }
@@ -61,15 +61,16 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
   }
 
   // fetch info if null
-  if (token1 === null) {
+  if (!token1) {
     token1 = new Token(event.args.token1)
     token1.symbol = await fetchTokenSymbol(event.args.token1)
     token1.name = await fetchTokenName(event.args.token1)
     token1.totalSupply = (await fetchTokenTotalSupply(event.args.token1)).toBigInt()
-    let decimals = await fetchTokenDecimals(event.args.token1)
+    const decimals = await fetchTokenDecimals(event.args.token1)
 
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (!decimals) {
+      logger.debug('mybug the decimal on token 1 was null', [])
       return
     }
     token1.decimals = decimals.toBigInt()
@@ -81,7 +82,7 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
     token1.txCount = ZERO_BI
   }
 
-  let pair = new Pair(event.args.pair)
+  const pair = new Pair(event.args.pair)
   pair.token0Id = token0.id
   pair.token1Id = token1.id
   pair.liquidityProviderCount = ZERO_BI
@@ -102,7 +103,8 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
   pair.token1Price = 0
 
   // create the tracked contract based on the template
-  await createPairDatasource({address: event.args.pair})
+  await createPairDatasource({ address: event.args.pair })
+  logger.info(event.args.pair)
 
   // save updated values
   await token0.save()

@@ -1,6 +1,6 @@
 import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam';
 import { BigNumber } from 'ethers';
-import { FACTORY_ADDRESS } from '../../packages/constants'
+import { FACTORY_ADDRESS } from '../constants'
 import { Bundle, Pair, PairDayData, Token, TokenDayData, ZenlinkDayData, Factory, PairHourData } from '../types'
 import { ONE_BI, ZERO_BI } from './helpers';
 
@@ -10,7 +10,7 @@ export async function updateUniswapDayData(event: MoonbeamEvent): Promise<Zenlin
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
   let uniswapDayData = await ZenlinkDayData.get(dayID.toString())
-  if (uniswapDayData === null) {
+  if (!uniswapDayData) {
     uniswapDayData = new ZenlinkDayData(dayID.toString())
     uniswapDayData.date = dayStartTimestamp
     uniswapDayData.dailyVolumeUSD = 0
@@ -37,7 +37,7 @@ export async function updatePairDayData(event: MoonbeamEvent): Promise<PairDayDa
     .concat(BigNumber.from(dayID).toString())
   let pair = await Pair.get(event.address)
   let pairDayData = await PairDayData.get(dayPairID)
-  if (pairDayData === null) {
+  if (!pairDayData) {
     pairDayData = new PairDayData(dayPairID)
     pairDayData.date = dayStartTimestamp
     pairDayData.token0Id = pair.token0Id
@@ -68,7 +68,7 @@ export async function updatePairHourData(event: MoonbeamEvent): Promise<PairHour
     .concat(BigNumber.from(hourIndex).toString())
   let pair = await Pair.get(event.address)
   let pairHourData = await PairHourData.get(hourPairID)
-  if (pairHourData === null) {
+  if (!pairHourData) {
     pairHourData = new PairHourData(hourPairID)
     pairHourData.hourStartUnix = hourStartUnix
     pairHourData.pairId = event.address
@@ -99,7 +99,7 @@ export async function updateTokenDayData(token: Token, event: MoonbeamEvent): Pr
     .concat(BigNumber.from(dayID).toString())
 
   let tokenDayData = await TokenDayData.get(tokenDayID)
-  if (tokenDayData === null) {
+  if (!tokenDayData) {
     tokenDayData = new TokenDayData(tokenDayID)
     tokenDayData.date = dayStartTimestamp
     tokenDayData.tokenId = token.id

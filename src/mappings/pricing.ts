@@ -1,4 +1,4 @@
-import { WETH_USDC_PAIR, WETH_ADDRESS, ADDRESS_ZERO, USDC_ADDRESS, WHITELIST } from '../../packages/constants'
+import { WETH_USDC_PAIR, WETH_ADDRESS, ADDRESS_ZERO, USDC_ADDRESS, WHITELIST } from '../constants'
 import { Pair, Token, Bundle } from '../types'
 import { ZERO_BD, factoryContract, ONE_BD, numberToBigDecimal, bigDecimalToNumber } from './helpers'
 import BigDecimal from 'bignumber.js'
@@ -6,7 +6,7 @@ import BigDecimal from 'bignumber.js'
 export async function getEthPriceInUSD(): Promise<BigDecimal> {
   let usdcPair = await Pair.get(WETH_USDC_PAIR)
 
-  if (usdcPair !== null) {
+  if (!usdcPair) {
     let isUsdcFirst = usdcPair.token0Id == USDC_ADDRESS
     return isUsdcFirst 
       ? numberToBigDecimal(usdcPair.token0Price)

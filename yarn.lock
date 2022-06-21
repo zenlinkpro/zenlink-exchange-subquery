@@ -986,6 +986,11 @@
   dependencies:
     "@octokit/openapi-types" "^12.1.0"
 
+"@openzeppelin/contracts-upgradeable@^4.5.2":
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.6.0.tgz#1bf55f230f008554d4c6fe25eb165b85112108b0"
+  integrity sha512-5OnVuO4HlkjSCJO165a4i2Pu1zQGzMs//o54LPrwUgxvEO2P3ax1QuaSI0cEHHTveA77guS0PnNugpR2JMsPfA==
+
 "@polkadot/api-augment@7.15.1":
   version "7.15.1"
   resolved "https://registry.yarnpkg.com/@polkadot/api-augment/-/api-augment-7.15.1.tgz#120b766feeaa96996f1c6717a5261c2e0845c1e0"
@@ -1026,7 +1031,7 @@
     "@polkadot/util-crypto" "^8.7.1"
     rxjs "^7.5.5"
 
-"@polkadot/api@7.15.1", "@polkadot/api@8.2.1", "@polkadot/api@^7.12.1", "@polkadot/api@^7.14.3":
+"@polkadot/api@7.15.1", "@polkadot/api@8.2.1", "@polkadot/api@^7.12.1", "@polkadot/api@^8.8.2":
   version "7.15.1"
   resolved "https://registry.yarnpkg.com/@polkadot/api/-/api-7.15.1.tgz#24eaeaa8ffbc6f30ff3d9846a816a18a688ceb8b"
   integrity sha512-z0z6+k8+R9ixRMWzfsYrNDnqSV5zHKmyhTCL0I7+1I081V18MJTCFUKubrh0t1gD0/FCt3U9Ibvr4IbtukYLrQ==
@@ -1418,6 +1423,23 @@
     class-validator "^0.13.2"
     ethers "^5.5.4"
 
+"@subql/contract-sdk@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@subql/contract-sdk/-/contract-sdk-0.6.0.tgz#6df54a6a4da9a654489532deb98bf35a6cbcf30a"
+  integrity sha512-LOB3YZiaIs0GVSDdRtGzDDYQ0jwMHSzlwAm/sGxi8OAl4wz24RUPjoZ3BdNMBRD3VdcRarpksGXYxUcrF0sKEg==
+  dependencies:
+    "@openzeppelin/contracts-upgradeable" "^4.5.2"
+
+"@subql/frontier-evm-processor@0.0.1-0":
+  version "0.0.1-0"
+  resolved "https://registry.yarnpkg.com/@subql/frontier-evm-processor/-/frontier-evm-processor-0.0.1-0.tgz#1b2535c030317dcd565ae6e75eaa95fd7ac5aabe"
+  integrity sha512-weIVh2IjeFJYnPh0FEZt1He/So3iZQh9l9Y7b0EbpFtHSBpxVxVshIBOOpOARuYSbH0o+bRY4OgeKGWEy2Yt0w==
+  dependencies:
+    "@subql/types" "^1.0.1-0"
+    class-transformer "^0.5.1"
+    class-validator "^0.13.2"
+    ethers "^5.6.5"
+
 "@subql/frontier-evm-processor@^0.0.3-0":
   version "0.0.3-0"
   resolved "https://registry.yarnpkg.com/@subql/frontier-evm-processor/-/frontier-evm-processor-0.0.3-0.tgz#944f468536af10d30ad54e75e32741d5dcdd7898"
@@ -1428,6 +1450,14 @@
     class-validator "^0.13.2"
     ethers "^5.6.5"
     pino "^7.11.0"
+
+"@subql/moonbeam-evm-processor@latest":
+  version "0.0.1-0"
+  resolved "https://registry.yarnpkg.com/@subql/moonbeam-evm-processor/-/moonbeam-evm-processor-0.0.1-0.tgz#19fc75b2a0379aca1fbe38de6ca709066e460466"
+  integrity sha512-mk1W+o+2IfKhMuTB/kkinner/xDYI/ibq/xygLfzMKT6gVLM0mBrhdtz6pqKaArbtwrtuUy4hbF7p3VJZNIDcg==
+  dependencies:
+    "@subql/frontier-evm-processor" "0.0.1-0"
+    "@subql/types" "^1.0.1-0"
 
 "@subql/node@^1.1.2":
   version "1.1.2"
@@ -1474,7 +1504,7 @@
   resolved "https://registry.yarnpkg.com/@subql/types/-/types-0.14.0.tgz#a736b27aa5f0b40f92befc871b56d115d64bf442"
   integrity sha512-J9GsAJ/Q7SH7HWV1DI3ORsi2T5+gFWm665iOpCNFOmsfuLNzrjjlyqoQhAaf45D8F8DeK/WooNnWFNPze8g1NQ==
 
-"@subql/types@1.1.0", "@subql/types@latest":
+"@subql/types@1.1.0", "@subql/types@^1.0.1-0", "@subql/types@latest":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@subql/types/-/types-1.1.0.tgz#3e88cdd203a867d07938f5f43c9fc18c26e34aa1"
   integrity sha512-gvKE5LjMjiZfCTyAIQRWZuCMp9svbDz7+vTx5ZVHxe06hyfFpB5BalVdefeQySyi7nCjVoH4pV22AQK9Eyo58g==
@@ -5017,13 +5047,13 @@ moment-timezone@^0.5.34, moment-timezone@^0.5.x:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
   integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
 
-moonbeam-types-bundle@^2.0.3:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/moonbeam-types-bundle/-/moonbeam-types-bundle-2.0.4.tgz#b985e128182a646ac2389f8054cf6c0c4f96fafa"
-  integrity sha512-kA51R8Wvv/IQBMhOve0Lkre/3lUwiodEyN+gKokI1vxZS2aXITeb2v908mUQx+N+EpoRsPW/X29ZGxVoK53/2A==
+moonbeam-types-bundle@latest:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/moonbeam-types-bundle/-/moonbeam-types-bundle-2.0.7.tgz#1b19a36631f0895afcee3a0076c6b29d838ae74c"
+  integrity sha512-YU/q/fS1jj2bK7+egeN7fQ5l5UqWQtRBZWekywQyskbpSNs/IlBdgo3uZixC5OiB4Vmtk+XXoIlHifgHgoFrnA==
   dependencies:
-    "@polkadot/api" "^7.14.3"
-    typescript "^4.5.2"
+    "@polkadot/api" "^8.8.2"
+    typescript "^4.7.4"
 
 ms@2.0.0:
   version "2.0.0"
@@ -6979,10 +7009,15 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
-typescript@^4.0.0, typescript@^4.4.4, typescript@^4.5.2:
+typescript@^4.0.0, typescript@^4.4.4:
   version "4.7.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.3.tgz#8364b502d5257b540f9de4c40be84c98e23a129d"
   integrity sha512-WOkT3XYvrpXx4vMMqlD+8R8R37fZkjyLGlxavMc4iB8lrl8L0DeTcHbYgw/v0N/z9wAFsgBhcsF0ruoySS22mA==
+
+typescript@^4.7.4:
+  version "4.7.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
+  integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
 
 uglify-js@^3.1.4:
   version "3.16.1"

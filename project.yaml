@@ -22,19 +22,19 @@ dataSources:
   - kind: substrate/Moonbeam
     startBlock: 790833
     processor:
-      file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
+      file: './dist/moonbeamEvm.js'
       options:
         abi: Factory
         address: '0xf36AE63d89983E3aeA8AaaD1086C3280eb01438D'
     assets:
       Factory:
-        file: ./abis/factory.json
+        file: ./src/abis/factory.json
       ERC20:
-        file: ./abis/ERC20.json
+        file: ./src/abis/ERC20.json
       ERC20SymbolBytes:
-        file: ./abis/ERC20SymbolBytes.json
+        file: ./src/abis/ERC20SymbolBytes.json
       ERC20NameBytes:
-        file: ./abis/ERC20NameBytes.json
+        file: ./src/abis/ERC20NameBytes.json
     mapping:
       file: ./dist/index.js
       handlers:
@@ -42,19 +42,19 @@ dataSources:
           kind: substrate/MoonbeamEvent
           filter:
             topics: 
-              - PairCreated(indexed address,indexed address,address,uint256)
+              - PairCreated(address indexed token0,address indexed token1,address pair,uint256)
 templates:
   - name: Pair
     kind: substrate/Moonbeam
     processor:
-      file: './node_modules/@subql/contract-processors/dist/moonbeam.js'
+      file: './dist/moonbeamEvm.js'
       options:
         abi: Pair
     assets:
       Pair:
-        file: ./abis/pair.json
+        file: ./src/abis/pair.json
       Factory:
-        file: ./abis/factory.json
+        file: ./src/abis/factory.json
     mapping:
       file: './dist/index.js'
       handlers:
@@ -62,19 +62,19 @@ templates:
           kind: substrate/MoonbeamEvent
           filter:
             topics:
-              - Mint(indexed address,uint256,uint256)
+              - Mint(address indexed sender,uint256 amount0,uint256 amount1)
         - handler: handleBurn
           kind: substrate/MoonbeamEvent
           filter:
             topics:
-              - Burn(indexed address,uint256,uint256,indexed address)
+              - Burn(address indexed sender,uint256 amount0,uint256 amount1,address indexed to)
         - handler: handleSwap
           kind: substrate/MoonbeamEvent
           filter:
             topics:
-              - Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+              - Swap(address indexed sender,uint256 amount0In,uint256 amount1In,uint256 amount0Out,uint256 amount1Out,address indexed to)
         - handler: handleTransfer
           kind: substrate/MoonbeamEvent
           filter:
             topics:
-              - Transfer(indexed address,indexed address,uint256)
+              - Transfer(address indexed from,address indexed to,uint256 value)

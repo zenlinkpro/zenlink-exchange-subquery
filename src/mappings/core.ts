@@ -1,4 +1,4 @@
-import { ADDRESS_ZERO, FACTORY_ADDRESS } from '../../packages/constants'
+import { ADDRESS_ZERO, FACTORY_ADDRESS } from '../constants'
 import {
   Pair,
   Token,
@@ -26,8 +26,8 @@ import {
   ZERO_BN,
 } from './helpers'
 import { BigNumber, Contract } from 'ethers'
-import { MoonbeamEvent } from '@subql/contract-processors/dist/moonbeam'
-import PairAbi from '../../abis/pair.json'
+import { MoonbeamEvent } from '@subql/moonbeam-evm-processor'
+import PairAbi from '../abis/pair.json'
 import BigDecimal from 'bignumber.js'
 
 type TransferEventArgs = [string, string, BigNumber] & { from: string, to: string, value: BigNumber }
@@ -37,7 +37,7 @@ type SwapEventArgs = [string, BigNumber, BigNumber, BigNumber, BigNumber, string
   { sender: string, amount0In: BigNumber, amount1In: BigNumber, amount0Out: BigNumber, amount1Out: BigNumber, to: string }
 
 async function isCompleteMint(mintId: string): Promise<boolean> {
-  return (await MintEvent.get(mintId)).sender !== null // sufficient checks
+  return !!(await MintEvent.get(mintId)).sender // sufficient checks
 }
 
 export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): Promise<void> {
@@ -64,7 +64,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
   // get or create transaction
   let transaction = await Transaction.get(transactionHash)
-  if (transaction === null) {
+  if (!transaction) {
     transaction = new Transaction(transactionHash)
     transaction.blockNumber = numberToBigint(event.blockNumber)
     transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
@@ -369,7 +369,7 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
   let transaction = await Transaction.get(event.transactionHash)
 
   // safety check
-  if (transaction === null) {
+  if (!transaction) {
     return
   }
 
@@ -501,7 +501,7 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   await uniswap.save()
 
   let transaction = await Transaction.get(event.transactionHash)
-  if (transaction === null) {
+  if (!transaction) {
     transaction = new Transaction(event.transactionHash)
     transaction.blockNumber = numberToBigint(event.blockNumber)
     transaction.timestamp = numberToBigint(event.blockTimestamp.getTime())
