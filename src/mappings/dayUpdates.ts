@@ -5,10 +5,10 @@ import { Bundle, Pair, PairDayData, Token, TokenDayData, ZenlinkDayData, Factory
 import { ONE_BI, ZERO_BI } from './helpers';
 
 export async function updateUniswapDayData(event: MoonbeamEvent): Promise<ZenlinkDayData> {
-  let uniswap = await Factory.get(FACTORY_ADDRESS)
-  let timestamp = event.blockTimestamp.getTime()
-  let dayID = timestamp / 86400
-  let dayStartTimestamp = dayID * 86400
+  const uniswap = await Factory.get(FACTORY_ADDRESS)
+  const timestamp = event.blockTimestamp.getTime()
+  const dayID = timestamp / 86400
+  const dayStartTimestamp = dayID * 86400
   let uniswapDayData = await ZenlinkDayData.get(dayID.toString())
   if (!uniswapDayData) {
     uniswapDayData = new ZenlinkDayData(dayID.toString())
@@ -29,13 +29,13 @@ export async function updateUniswapDayData(event: MoonbeamEvent): Promise<Zenlin
 }
 
 export async function updatePairDayData(event: MoonbeamEvent): Promise<PairDayData> {
-  let timestamp = event.blockTimestamp.getTime()
-  let dayID = timestamp / 86400
-  let dayStartTimestamp = dayID * 86400
-  let dayPairID = event.address
+  const timestamp = event.blockTimestamp.getTime()
+  const dayID = timestamp / 86400
+  const dayStartTimestamp = dayID * 86400
+  const dayPairID = event.address
     .concat('-')
     .concat(BigNumber.from(dayID).toString())
-  let pair = await Pair.get(event.address)
+  const pair = await Pair.get(event.address)
   let pairDayData = await PairDayData.get(dayPairID)
   if (!pairDayData) {
     pairDayData = new PairDayData(dayPairID)
@@ -60,13 +60,13 @@ export async function updatePairDayData(event: MoonbeamEvent): Promise<PairDayDa
 }
 
 export async function updatePairHourData(event: MoonbeamEvent): Promise<PairHourData> {
-  let timestamp = event.blockTimestamp.getTime()
-  let hourIndex = timestamp / 3600 // get unique hour within unix history
-  let hourStartUnix = hourIndex * 3600 // want the rounded effect
-  let hourPairID = event.address
+  const timestamp = event.blockTimestamp.getTime()
+  const hourIndex = timestamp / 3600 // get unique hour within unix history
+  const hourStartUnix = hourIndex * 3600 // want the rounded effect
+  const hourPairID = event.address
     .concat('-')
     .concat(BigNumber.from(hourIndex).toString())
-  let pair = await Pair.get(event.address)
+  const pair = await Pair.get(event.address)
   let pairHourData = await PairHourData.get(hourPairID)
   if (!pairHourData) {
     pairHourData = new PairHourData(hourPairID)
@@ -89,11 +89,11 @@ export async function updatePairHourData(event: MoonbeamEvent): Promise<PairHour
 }
 
 export async function updateTokenDayData(token: Token, event: MoonbeamEvent): Promise<TokenDayData> {
-  let bundle = await Bundle.get('1')
-  let timestamp = event.blockTimestamp.getTime()
-  let dayID = timestamp / 86400
-  let dayStartTimestamp = dayID * 86400
-  let tokenDayID = token.id
+  const bundle = await Bundle.get('1')
+  const timestamp = event.blockTimestamp.getTime()
+  const dayID = timestamp / 86400
+  const dayStartTimestamp = dayID * 86400
+  const tokenDayID = token.id
     .toString()
     .concat('-')
     .concat(BigNumber.from(dayID).toString())

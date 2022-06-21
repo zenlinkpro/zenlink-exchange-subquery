@@ -986,11 +986,6 @@
   dependencies:
     "@octokit/openapi-types" "^12.1.0"
 
-"@openzeppelin/contracts-upgradeable@^4.5.2":
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.6.0.tgz#1bf55f230f008554d4c6fe25eb165b85112108b0"
-  integrity sha512-5OnVuO4HlkjSCJO165a4i2Pu1zQGzMs//o54LPrwUgxvEO2P3ax1QuaSI0cEHHTveA77guS0PnNugpR2JMsPfA==
-
 "@polkadot/api-augment@7.15.1":
   version "7.15.1"
   resolved "https://registry.yarnpkg.com/@polkadot/api-augment/-/api-augment-7.15.1.tgz#120b766feeaa96996f1c6717a5261c2e0845c1e0"
@@ -1422,13 +1417,6 @@
     class-transformer "0.5.1"
     class-validator "^0.13.2"
     ethers "^5.5.4"
-
-"@subql/contract-sdk@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@subql/contract-sdk/-/contract-sdk-0.6.0.tgz#6df54a6a4da9a654489532deb98bf35a6cbcf30a"
-  integrity sha512-LOB3YZiaIs0GVSDdRtGzDDYQ0jwMHSzlwAm/sGxi8OAl4wz24RUPjoZ3BdNMBRD3VdcRarpksGXYxUcrF0sKEg==
-  dependencies:
-    "@openzeppelin/contracts-upgradeable" "^4.5.2"
 
 "@subql/frontier-evm-processor@0.0.1-0":
   version "0.0.1-0"

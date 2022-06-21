@@ -46,21 +46,21 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     return
   }
 
-  let factory = await Factory.get(FACTORY_ADDRESS)
-  let transactionHash = event.transactionHash
+  const factory = await Factory.get(FACTORY_ADDRESS)
+  const transactionHash = event.transactionHash
 
   // user stats
-  let from = event.args.from
+  const from = event.args.from
   await createUser(from)
-  let to = event.args.to
+  const to = event.args.to
   await createUser(to)
 
   // get pair and load contract
-  let pair = await Pair.get(event.address)
+  const pair = await Pair.get(event.address)
   const pairContract = new Contract(event.address, PairAbi, provider)
 
   // liquidity token amount being transfered
-  let value = convertTokenToDecimal(BigNumber.from(event.args.value.toString()), BN_18)
+  const value = convertTokenToDecimal(BigNumber.from(event.args.value.toString()), BN_18)
 
   // get or create transaction
   let transaction = await Transaction.get(transactionHash)
@@ -74,7 +74,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   }
 
   // mints
-  let mints = transaction.mints
+  const mints = transaction.mints
   if (from == ADDRESS_ZERO) {
     // update total supply
     pair.totalSupply = pair.totalSupply + bigDecimalToNumber(value)
@@ -82,7 +82,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
     // create new mint if no mints so far or if last one is done already
     if (mints.length === 0 || isCompleteMint(mints[mints.length - 1])) {
-      let mint = new MintEvent(
+      const mint = new MintEvent(
         event.transactionHash
           .concat('-')
           .concat(BigNumber.from(mints.length).toString())
@@ -105,8 +105,8 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
   // case where direct send first on ETH withdrawls
   if (event.args.to == pair.id) {
-    let burns = transaction.burns
-    let burn = new BurnEvent(
+    const burns = transaction.burns
+    const burn = new BurnEvent(
       event.transactionHash
         .concat('-')
         .concat(BigNumber.from(burns.length).toString())
@@ -133,10 +133,10 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     await pair.save()
 
     // this is a new instance of a logical burn
-    let burns = transaction.burns
+    const burns = transaction.burns
     let burn: BurnEvent
     if (burns.length > 0) {
-      let currentBurn = await BurnEvent.get(burns[burns.length - 1])
+      const currentBurn = await BurnEvent.get(burns[burns.length - 1])
       if (currentBurn.needsComplete) {
         burn = currentBurn
       } else {
@@ -166,7 +166,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
 
     // if this logical burn included a fee mint, account for this
     if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
-      let mint = await MintEvent.get(mints[mints.length - 1])
+      const mint = await MintEvent.get(mints[mints.length - 1])
       burn.feeTo = mint.to
       burn.feeLiquidity = mint.liquidity
       // remove the logical mint
@@ -197,14 +197,14 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   }
 
   if (from != ADDRESS_ZERO && from != pair.id) {
-    let fromUserLiquidityPosition = await createLiquidityPosition(event.address, from)
+    const fromUserLiquidityPosition = await createLiquidityPosition(event.address, from)
     fromUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(await pairContract.balanceOf(from), BN_18))
     await fromUserLiquidityPosition.save()
     await createLiquiditySnapshot(fromUserLiquidityPosition, event)
   }
 
   if (event.args.to != ADDRESS_ZERO && to != pair.id) {
-    let toUserLiquidityPosition = await createLiquidityPosition(event.address, to)
+    const toUserLiquidityPosition = await createLiquidityPosition(event.address, to)
     toUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(pairContract.balanceOf(to), BN_18))
     await toUserLiquidityPosition.save()
     await createLiquiditySnapshot(toUserLiquidityPosition, event)
@@ -220,10 +220,10 @@ export async function handleSync(
   amount0Out: BigNumber,
   amount1Out: BigNumber
 ): Promise<void> {
-  let pair = await Pair.get(pairAddress)
-  let token0 = await Token.get(pair.token0Id)
-  let token1 = await Token.get(pair.token1Id)
-  let uniswap = await Factory.get(FACTORY_ADDRESS)
+  const pair = await Pair.get(pairAddress)
+  const token0 = await Token.get(pair.token0Id)
+  const token1 = await Token.get(pair.token1Id)
+  const uniswap = await Factory.get(FACTORY_ADDRESS)
 
   // reset factory liquidity by subtracting onluy tarcked liquidity
   uniswap.totalLiquidityETH = uniswap.totalLiquidityETH - pair.trackedReserveETH
@@ -253,7 +253,7 @@ export async function handleSync(
   await pair.save()
 
   // update ETH price now that reserves could have changed
-  let bundle = await Bundle.get('1')
+  const bundle = await Bundle.get('1')
   bundle.ethPrice = bigDecimalToNumber(await getEthPriceInUSD())
   await bundle.save()
 
@@ -305,27 +305,27 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
     ZERO_BN, 
     ZERO_BN
   )
-  let transaction = await Transaction.get(event.transactionHash)
-  let mints = transaction.mints
-  let mint = await MintEvent.get(mints[mints.length - 1])
+  const transaction = await Transaction.get(event.transactionHash)
+  const mints = transaction.mints
+  const mint = await MintEvent.get(mints[mints.length - 1])
 
-  let pair = await Pair.get(event.address)
-  let uniswap = await Factory.get(FACTORY_ADDRESS)
+  const pair = await Pair.get(event.address)
+  const uniswap = await Factory.get(FACTORY_ADDRESS)
 
-  let token0 = await Token.get(pair.token0Id)
-  let token1 = await Token.get(pair.token1Id)
+  const token0 = await Token.get(pair.token0Id)
+  const token1 = await Token.get(pair.token1Id)
 
   // update exchange info (except balances, sync will cover that)
-  let token0Amount = convertTokenToDecimal(event.args.amount0, BigNumber.from(token0.decimals))
-  let token1Amount = convertTokenToDecimal(event.args.amount1, BigNumber.from(token1.decimals))
+  const token0Amount = convertTokenToDecimal(event.args.amount0, BigNumber.from(token0.decimals))
+  const token1Amount = convertTokenToDecimal(event.args.amount1, BigNumber.from(token1.decimals))
 
   // update txn counts
   token0.txCount = token0.txCount + ONE_BI
   token1.txCount = token1.txCount + ONE_BI
 
   // get new amounts of USD and ETH for tracking
-  let bundle = await Bundle.get('1')
-  let amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
+  const bundle = await Bundle.get('1')
+  const amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
     + (token0.derivedETH * bigDecimalToNumber(token0Amount)))
     * bundle.ethPrice
 
@@ -347,7 +347,7 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
   await mint.save()
 
   // update the LP position
-  let liquidityPosition = await createLiquidityPosition(event.address, mint.to)
+  const liquidityPosition = await createLiquidityPosition(event.address, mint.to)
   await createLiquiditySnapshot(liquidityPosition, event)
 
   // update day entities
@@ -366,32 +366,32 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
     event.args.amount0,
     event.args.amount1
   )
-  let transaction = await Transaction.get(event.transactionHash)
+  const transaction = await Transaction.get(event.transactionHash)
 
   // safety check
   if (!transaction) {
     return
   }
 
-  let burns = transaction.burns
-  let burn = await BurnEvent.get(burns[burns.length - 1])
+  const burns = transaction.burns
+  const burn = await BurnEvent.get(burns[burns.length - 1])
 
-  let pair = await Pair.get(event.address)
-  let uniswap = await Factory.get(FACTORY_ADDRESS)
+  const pair = await Pair.get(event.address)
+  const uniswap = await Factory.get(FACTORY_ADDRESS)
 
   //update token info
-  let token0 = await Token.get(pair.token0Id)
-  let token1 = await Token.get(pair.token1Id)
-  let token0Amount = convertTokenToDecimal(event.args.amount0, BigNumber.from(token0.decimals))
-  let token1Amount = convertTokenToDecimal(event.args.amount1, BigNumber.from(token1.decimals))
+  const token0 = await Token.get(pair.token0Id)
+  const token1 = await Token.get(pair.token1Id)
+  const token0Amount = convertTokenToDecimal(event.args.amount0, BigNumber.from(token0.decimals))
+  const token1Amount = convertTokenToDecimal(event.args.amount1, BigNumber.from(token1.decimals))
 
   // update txn counts
   token0.txCount = token0.txCount + ONE_BI
   token1.txCount = token1.txCount + ONE_BI
 
   // get new amounts of USD and ETH for tracking
-  let bundle = await Bundle.get('1')
-  let amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
+  const bundle = await Bundle.get('1')
+  const amountTotalUSD = ((token1.derivedETH * bigDecimalToNumber(token1Amount))
     + (token0.derivedETH * bigDecimalToNumber(token0Amount)))
     * bundle.ethPrice
 
@@ -415,7 +415,7 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
   await burn.save()
 
   // update the LP position
-  let liquidityPosition = await createLiquidityPosition(event.address, burn.sender)
+  const liquidityPosition = await createLiquidityPosition(event.address, burn.sender)
   await createLiquiditySnapshot(liquidityPosition, event)
 
   // update day entities
@@ -434,29 +434,29 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
     event.args.amount0Out,
     event.args.amount1Out,
   )
-  let pair = await Pair.get(event.address)
-  let token0 = await Token.get(pair.token0Id)
-  let token1 = await Token.get(pair.token1Id)
-  let amount0In = convertTokenToDecimal(event.args.amount0In, BigNumber.from(token0.decimals))
-  let amount1In = convertTokenToDecimal(event.args.amount1In, BigNumber.from(token1.decimals))
-  let amount0Out = convertTokenToDecimal(event.args.amount0Out, BigNumber.from(token0.decimals))
-  let amount1Out = convertTokenToDecimal(event.args.amount1Out, BigNumber.from(token1.decimals))
+  const pair = await Pair.get(event.address)
+  const token0 = await Token.get(pair.token0Id)
+  const token1 = await Token.get(pair.token1Id)
+  const amount0In = convertTokenToDecimal(event.args.amount0In, BigNumber.from(token0.decimals))
+  const amount1In = convertTokenToDecimal(event.args.amount1In, BigNumber.from(token1.decimals))
+  const amount0Out = convertTokenToDecimal(event.args.amount0Out, BigNumber.from(token0.decimals))
+  const amount1Out = convertTokenToDecimal(event.args.amount1Out, BigNumber.from(token1.decimals))
 
   // totals for volume updates
-  let amount0Total = amount0Out.plus(amount0In)
-  let amount1Total = amount1Out.plus(amount1In)
+  const amount0Total = amount0Out.plus(amount0In)
+  const amount1Total = amount1Out.plus(amount1In)
 
   // ETH/USD prices
-  let bundle = await Bundle.get('1')
+  const bundle = await Bundle.get('1')
 
   // get total amounts of derived USD and ETH for tracking
-  let derivedAmountETH = (token1.derivedETH * bigDecimalToNumber(amount1Total)
+  const derivedAmountETH = (token1.derivedETH * bigDecimalToNumber(amount1Total)
     + (token0.derivedETH * BigNumber.from(amount0Total.toString()).toNumber()))
     / 2
-  let derivedAmountUSD = derivedAmountETH * bundle.ethPrice
+  const derivedAmountUSD = derivedAmountETH * bundle.ethPrice
 
   // only accounts for volume through white listed tokens
-  let trackedAmountUSD = await getTrackedVolumeUSD(amount0Total, token0, amount1Total, token1, pair)
+  const trackedAmountUSD = await getTrackedVolumeUSD(amount0Total, token0, amount1Total, token1, pair)
 
   let trackedAmountETH: BigDecimal
   if (bundle.ethPrice == bigDecimalToNumber(ZERO_BD)) {
@@ -488,7 +488,7 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   await pair.save()
 
   // update global values, only used tracked amounts for volume
-  let uniswap = await Factory.get(FACTORY_ADDRESS)
+  const uniswap = await Factory.get(FACTORY_ADDRESS)
   uniswap.totalVolumeUSD = uniswap.totalVolumeUSD + bigDecimalToNumber(trackedAmountUSD)
   uniswap.totalVolumeETH = uniswap.totalVolumeETH + bigDecimalToNumber(trackedAmountETH)
   uniswap.untrackedVolumeUSD = uniswap.untrackedVolumeUSD + derivedAmountUSD
@@ -509,8 +509,8 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
     transaction.swaps = []
     transaction.burns = []
   }
-  let swaps = transaction.swaps
-  let swap = new SwapEvent(
+  const swaps = transaction.swaps
+  const swap = new SwapEvent(
     event.transactionHash
       .concat('-')
       .concat(BigNumber.from(swaps.length).toString())
@@ -540,11 +540,11 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   await transaction.save()
 
   // update day entities
-  let pairDayData = await updatePairDayData(event)
-  let pairHourData = await updatePairHourData(event)
-  let uniswapDayData = await updateUniswapDayData(event)
-  let token0DayData = await updateTokenDayData(token0, event)
-  let token1DayData = await updateTokenDayData(token1, event)
+  const pairDayData = await updatePairDayData(event)
+  const pairHourData = await updatePairHourData(event)
+  const uniswapDayData = await updateUniswapDayData(event)
+  const token0DayData = await updateTokenDayData(token0, event)
+  const token1DayData = await updateTokenDayData(token1, event)
 
   // swap specific updating
   uniswapDayData.dailyVolumeUSD = uniswapDayData.dailyVolumeUSD + bigDecimalToNumber(trackedAmountUSD)

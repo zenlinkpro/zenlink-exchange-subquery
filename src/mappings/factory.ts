@@ -26,7 +26,7 @@ export async function handleNewPair(event: MoonbeamEvent<PairCreatedEventArgs>):
     factory.txCount = ZERO_BI
 
     // create new bundle
-    let bundle = new Bundle('1')
+    const bundle = new Bundle('1')
     bundle.ethPrice = 0
     await bundle.save()
   }

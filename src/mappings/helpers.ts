@@ -9,13 +9,13 @@ import { FrontierEthProvider } from '@subql/frontier-evm-processor'
 import { MoonbeamEvent } from '@subql/moonbeam-evm-processor'
 import BigDecimal from 'bignumber.js'
 
-export let ZERO_BN = BigNumber.from(0)
-export let ONE_BN = BigNumber.from(1)
-export let ZERO_BD = new BigDecimal(0)
-export let ONE_BD = new BigDecimal(1)
-export let ZERO_BI = BigInt(0)
-export let ONE_BI = BigInt(1)
-export let BN_18 = BigNumber.from(18)
+export const ZERO_BN = BigNumber.from(0)
+export const ONE_BN = BigNumber.from(1)
+export const ZERO_BD = new BigDecimal(0)
+export const ONE_BD = new BigDecimal(1)
+export const ZERO_BI = BigInt(0)
+export const ONE_BI = BigInt(1)
+export const BN_18 = BigNumber.from(18)
 
 export const provider =  new FrontierEthProvider()
 export const factoryContract = new Contract(FACTORY_ADDRESS, FactoryAbi, provider)
@@ -69,14 +69,14 @@ export function numberToBigDecimal(value: number): BigDecimal {
 }
 
 export async function fetchTokenSymbol(tokenAddress: string): Promise<string> {
-  let contract = new Contract(tokenAddress, ERC20Abi, provider)
-  let contractSymbolBytes = new Contract(tokenAddress, ERC20SymbolBytesAbi, provider)
+  const contract = new Contract(tokenAddress, ERC20Abi, provider)
+  const contractSymbolBytes = new Contract(tokenAddress, ERC20SymbolBytesAbi, provider)
 
   // try types string and bytes32 for symbol
   let symbolValue = 'unknown'
-  let symbolResult = await contract.symbol()
+  const symbolResult = await contract.symbol()
   if (!symbolResult) {
-    let symbolResultBytes = await contractSymbolBytes.symbol()
+    const symbolResultBytes = await contractSymbolBytes.symbol()
     if (symbolResultBytes) {
       symbolValue = symbolResultBytes
     }
@@ -88,14 +88,14 @@ export async function fetchTokenSymbol(tokenAddress: string): Promise<string> {
 }
 
 export async function fetchTokenName(tokenAddress: string): Promise<string> {
-  let contract = new Contract(tokenAddress, ERC20Abi, provider)
-  let contractNameBytes =  new Contract(tokenAddress, ERC20NameBytesAbi, provider)
+  const contract = new Contract(tokenAddress, ERC20Abi, provider)
+  const contractNameBytes =  new Contract(tokenAddress, ERC20NameBytesAbi, provider)
 
   // try types string and bytes32 for name
   let nameValue = 'unknown'
-  let nameResult = await contract.name()
+  const nameResult = await contract.name()
   if (!nameResult) {
-    let nameResultBytes = await contractNameBytes.name()
+    const nameResultBytes = await contractNameBytes.name()
     if (nameResultBytes) {
       nameValue = nameResultBytes
     }
@@ -117,10 +117,10 @@ export async function fetchTokenTotalSupply(tokenAddress: string): Promise<BigNu
 }
 
 export async function fetchTokenDecimals(tokenAddress: string): Promise<BigNumber> {
-  let contract = new Contract(tokenAddress, ERC20Abi, provider)
+  const contract = new Contract(tokenAddress, ERC20Abi, provider)
   // try types uint8 for decimals
   let decimalValue: BigNumber
-  let decimalResult = await contract.decimals()
+  const decimalResult = await contract.decimals()
   if (decimalResult) {
     decimalValue = BigNumber.from(decimalResult.toString())
   }
@@ -128,10 +128,10 @@ export async function fetchTokenDecimals(tokenAddress: string): Promise<BigNumbe
 }
 
 export async function createLiquidityPosition(exchange: string, user: string): Promise<LiquidityPosition> {
-  let id = exchange.concat('-').concat(user)
+  const id = exchange.concat('-').concat(user)
   let liquidityTokenBalance = await LiquidityPosition.get(id)
   if (!liquidityTokenBalance) {
-    let pair = await Pair.get(exchange)
+    const pair = await Pair.get(exchange)
     pair.liquidityProviderCount = BigNumber.from(pair.liquidityProviderCount).add(ONE_BN).toBigInt()
     liquidityTokenBalance = new LiquidityPosition(id)
     liquidityTokenBalance.liquidityTokenBalance = bigDecimalToNumber(ZERO_BD) 
@@ -155,14 +155,14 @@ export async function createUser(address: string): Promise<void> {
 }
 
 export async function createLiquiditySnapshot(position: LiquidityPosition, event: MoonbeamEvent): Promise<void> {
-  let timestamp = event.blockTimestamp.getTime()
-  let bundle = await Bundle.get('1')
-  let pair = await Pair.get(position.pairId)
-  let token0 = await Token.get(pair.token0Id)
-  let token1 = await Token.get(pair.token1Id)
+  const timestamp = event.blockTimestamp.getTime()
+  const bundle = await Bundle.get('1')
+  const pair = await Pair.get(position.pairId)
+  const token0 = await Token.get(pair.token0Id)
+  const token1 = await Token.get(pair.token1Id)
 
   // create new snapshot
-  let snapshot = new LiquidityPositionSnapshot(position.id.concat(timestamp.toString()))
+  const snapshot = new LiquidityPositionSnapshot(position.id.concat(timestamp.toString()))
   snapshot.liquidityPositionId = position.id
   snapshot.timestamp = timestamp
   snapshot.block = event.blockNumber
