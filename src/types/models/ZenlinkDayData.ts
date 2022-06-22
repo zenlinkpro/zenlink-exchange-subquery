@@ -16,7 +16,7 @@ export class ZenlinkDayData implements Entity {
 
     public id: string;
 
-    public date: number;
+    public date: bigint;
 
     public dailyVolumeETH: number;
 

@@ -1,10 +1,10 @@
-specVersion: 1.0.0
+specVersion: 0.2.1
 name: zenlink-exchange-subquery
 version: 1.0.0
 runner:
   node:
     name: "@subql/node"
-    version: ">=1.1.2"
+    version: ">=1.2.1"
   query:
     name: "@subql/query"
     version: ">=1.1.1"
@@ -13,9 +13,9 @@ repository: https://github.com/zenlinkpro/zenlink-exchange-subquery
 schema:
   file: ./schema.graphql
 network:
-  chainId: "0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" 
-  endpoint: wss://moonriver.api.onfinality.io/public-ws
+  genesisHash: '0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b'
   dictionary: 'https://api.subquery.network/sq/subquery/moonriver-dictionary'
+  endpoint: wss://moonriver.api.onfinality.io/public-ws
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
@@ -46,6 +46,7 @@ dataSources:
 templates:
   - name: Pair
     kind: substrate/Moonbeam
+    startBlock: 790833
     processor:
       file: './dist/moonbeamEvm.js'
       options:

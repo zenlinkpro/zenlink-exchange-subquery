@@ -6,7 +6,7 @@ import BigDecimal from 'bignumber.js'
 export async function getEthPriceInUSD(): Promise<BigDecimal> {
   const usdcPair = await Pair.get(WETH_USDC_PAIR)
 
-  if (!usdcPair) {
+  if (usdcPair) {
     const isUsdcFirst = usdcPair.token0Id == USDC_ADDRESS
     return isUsdcFirst 
       ? numberToBigDecimal(usdcPair.token0Price)
@@ -33,16 +33,18 @@ export async function findEthPerToken(token: Token): Promise<BigDecimal> {
   }
   // loop through whitelist and check if paired with any
   for (let i = 0; i < WHITELIST.length; ++i) {
-    const pairAddress = await factoryContract.getPair(token.id, WHITELIST[i])
-    if (pairAddress != ADDRESS_ZERO) {
+    const pairAddress = (await factoryContract.getPair(token.id, WHITELIST[i])).toLowerCase()
+    if (pairAddress !== ADDRESS_ZERO) {
       const pair = await Pair.get(pairAddress)
-      if (pair.token0Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
-        const token1 = await Token.get(pair.token1Id)
-        return numberToBigDecimal(pair.token1Price * token1.derivedETH) // return token1 per our token * Eth per token 1
-      }
-      if (pair.token1Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
-        const token0 = await Token.get(pair.token0Id)
-        return numberToBigDecimal(pair.token1Price * token0.derivedETH) // return token0 per our token * ETH per token 0
+      if (pair) {
+        if (pair.token0Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
+          const token1 = await Token.get(pair.token1Id)
+          return numberToBigDecimal(pair.token1Price * token1.derivedETH) // return token1 per our token * Eth per token 1
+        }
+        if (pair.token1Id == token.id && pair.reserveETH > bigDecimalToNumber(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
+          const token0 = await Token.get(pair.token0Id)
+          return numberToBigDecimal(pair.token1Price * token0.derivedETH) // return token0 per our token * ETH per token 0
+        }
       }
     }
   }

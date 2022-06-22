@@ -41,8 +41,12 @@ async function isCompleteMint(mintId: string): Promise<boolean> {
 }
 
 export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): Promise<void> {
+  const args = {
+    from: event.args.from.toLowerCase(),
+    to: event.args.to.toLowerCase()
+  }
   // ignore initial transfers for first adds
-  if (event.args.to == ADDRESS_ZERO && event.args.value.eq(BigNumber.from('1000'))) {
+  if (args.to == ADDRESS_ZERO && event.args.value.eq(BigNumber.from('1000'))) {
     return
   }
 
@@ -50,9 +54,9 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   const transactionHash = event.transactionHash
 
   // user stats
-  const from = event.args.from
+  const from = args.from
   await createUser(from)
-  const to = event.args.to
+  const to = args.to
   await createUser(to)
 
   // get pair and load contract
@@ -104,7 +108,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   }
 
   // case where direct send first on ETH withdrawls
-  if (event.args.to == pair.id) {
+  if (args.to == pair.id) {
     const burns = transaction.burns
     const burn = new BurnEvent(
       event.transactionHash
@@ -114,8 +118,8 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     burn.pairId = pair.id
     burn.liquidity = bigDecimalToNumber(value)
     burn.timestamp = transaction.timestamp
-    burn.to = event.args.to
-    burn.sender = event.args.from
+    burn.to = args.to
+    burn.sender = args.from
     burn.needsComplete = true
     burn.transactionId = transaction.id
     await burn.save()
@@ -128,7 +132,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
   }
 
   // burn
-  if (event.args.to == ADDRESS_ZERO && event.args.from == pair.id) {
+  if (args.to == ADDRESS_ZERO && args.from == pair.id) {
     pair.totalSupply = pair.totalSupply - bigDecimalToNumber(value)
     await pair.save()
 
@@ -196,16 +200,16 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     await transaction.save()
   }
 
-  if (from != ADDRESS_ZERO && from != pair.id) {
+  if (from !== ADDRESS_ZERO && from !== pair.id) {
     const fromUserLiquidityPosition = await createLiquidityPosition(event.address, from)
     fromUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(await pairContract.balanceOf(from), BN_18))
     await fromUserLiquidityPosition.save()
     await createLiquiditySnapshot(fromUserLiquidityPosition, event)
   }
 
-  if (event.args.to != ADDRESS_ZERO && to != pair.id) {
+  if (args.to !== ADDRESS_ZERO && to !== pair.id) {
     const toUserLiquidityPosition = await createLiquidityPosition(event.address, to)
-    toUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(pairContract.balanceOf(to), BN_18))
+    toUserLiquidityPosition.liquidityTokenBalance = bigDecimalToNumber(convertTokenToDecimal(await pairContract.balanceOf(to), BN_18))
     await toUserLiquidityPosition.save()
     await createLiquiditySnapshot(toUserLiquidityPosition, event)
   }
@@ -298,6 +302,9 @@ export async function handleSync(
 }
 
 export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<void> {
+  const args = {
+    sender: event.args.sender.toLowerCase()
+  }
   await handleSync(
     event.address, 
     event.args.amount0,
@@ -339,7 +346,7 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
   await pair.save()
   await uniswap.save()
 
-  mint.sender = event.args.sender
+  mint.sender = args.sender
   mint.amount0 = bigDecimalToNumber(token0Amount)
   mint.amount1 = bigDecimalToNumber(token1Amount)
   mint.logIndex = numberToBigint(event.logIndex)
@@ -427,6 +434,10 @@ export async function handleBurn(event: MoonbeamEvent<BurnEventArgs>): Promise<v
 }
 
 export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<void> {
+  const args = {
+    sender: event.args.sender.toLowerCase(),
+    to: event.args.to.toLowerCase()
+  }
   await handleSync(
     event.address, 
     event.args.amount0In,
@@ -451,7 +462,7 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
 
   // get total amounts of derived USD and ETH for tracking
   const derivedAmountETH = (token1.derivedETH * bigDecimalToNumber(amount1Total)
-    + (token0.derivedETH * BigNumber.from(amount0Total.toString()).toNumber()))
+    + (token0.derivedETH * amount0Total.toNumber()))
     / 2
   const derivedAmountUSD = derivedAmountETH * bundle.ethPrice
 
@@ -513,20 +524,20 @@ export async function handleSwap(event: MoonbeamEvent<SwapEventArgs>): Promise<v
   const swap = new SwapEvent(
     event.transactionHash
       .concat('-')
-      .concat(BigNumber.from(swaps.length).toString())
+      .concat(swaps.length.toString())
   )
 
   // update swap event
   swap.pairId = pair.id
   swap.timestamp = transaction.timestamp
   swap.transactionId = transaction.id
-  swap.sender = event.args.sender
+  swap.sender = args.sender
   swap.amount0In = bigDecimalToNumber(amount0In)
   swap.amount1In = bigDecimalToNumber(amount1In)
   swap.amount0Out = bigDecimalToNumber(amount0Out)
   swap.amount1Out = bigDecimalToNumber(amount1Out)
-  swap.to = event.args.to
-  swap.from = event.args.sender
+  swap.to = args.to
+  swap.from = args.sender
   swap.logIndex = numberToBigint(event.logIndex)
   // use the tracked amount if we have it
   swap.amountUSD = trackedAmountUSD === ZERO_BD ? derivedAmountUSD : bigDecimalToNumber(trackedAmountUSD)

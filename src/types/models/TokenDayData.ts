@@ -16,7 +16,7 @@ export class TokenDayData implements Entity {
 
     public id: string;
 
-    public date: number;
+    public date: bigint;
 
     public tokenId: string;
 

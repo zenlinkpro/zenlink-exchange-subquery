@@ -37,7 +37,7 @@ export function convertEthToDecimal(eth: BigNumber): BigDecimal {
 }
 
 export function convertTokenToDecimal(tokenAmount: BigNumber, exchangeDecimals: BigNumber): BigDecimal {
-  if (exchangeDecimals == ZERO_BN) {
+  if (exchangeDecimals.eq(ZERO_BN)) {
     return new BigDecimal(tokenAmount.toString())
   }
   return new BigDecimal(tokenAmount.toString()).div(exponentToBigDecimal(exchangeDecimals))
@@ -57,15 +57,15 @@ export function isNullEthValue(value: string): boolean {
 }
 
 export function bigDecimalToNumber(value: BigDecimal): number {
-  return BigNumber.from(value.toString()).toNumber()
+  return value.toNumber()
 }
 
 export function numberToBigint(value: number): bigint {
-  return BigNumber.from(value).toBigInt()
+  return BigInt(value.toFixed(0))
 }
 
 export function numberToBigDecimal(value: number): BigDecimal {
-  return new BigDecimal(BigNumber.from(value).toString())
+  return new BigDecimal(value)
 }
 
 export async function fetchTokenSymbol(tokenAddress: string): Promise<string> {
@@ -161,11 +161,13 @@ export async function createLiquiditySnapshot(position: LiquidityPosition, event
   const token0 = await Token.get(pair.token0Id)
   const token1 = await Token.get(pair.token1Id)
 
+  logger.info(event.blockNumber)
+
   // create new snapshot
   const snapshot = new LiquidityPositionSnapshot(position.id.concat(timestamp.toString()))
   snapshot.liquidityPositionId = position.id
-  snapshot.timestamp = timestamp
-  snapshot.block = event.blockNumber
+  snapshot.timestamp = numberToBigint(timestamp)
+  snapshot.block = numberToBigint(event.blockNumber)
   snapshot.userId = position.userId
   snapshot.pairId = position.pairId
   snapshot.token0PriceUSD = token0.derivedETH * bundle.ethPrice
@@ -175,7 +177,6 @@ export async function createLiquiditySnapshot(position: LiquidityPosition, event
   snapshot.reserveUSD = pair.reserveUSD
   snapshot.liquidityTokenTotalSupply = pair.totalSupply
   snapshot.liquidityTokenBalance = position.liquidityTokenBalance
-  snapshot.liquidityPositionId = position.id
   await snapshot.save()
   await position.save()
 }

@@ -16,7 +16,7 @@ export class PairHourData implements Entity {
 
     public id: string;
 
-    public hourStartUnix: number;
+    public hourStartUnix: bigint;
 
     public pairId: string;
 

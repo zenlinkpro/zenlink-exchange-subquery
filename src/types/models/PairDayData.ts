@@ -16,7 +16,7 @@ export class PairDayData implements Entity {
 
     public id: string;
 
-    public date: number;
+    public date: bigint;
 
     public pairAddress: string;
 

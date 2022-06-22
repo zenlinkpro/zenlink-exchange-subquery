@@ -16,7 +16,7 @@ export class Factory implements Entity {
 
     public id: string;
 
-    public pairCount: number;
+    public pairCount: bigint;
 
     public totalVolumeUSD: number;
 

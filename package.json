@@ -36,7 +36,7 @@
     "@subql/contract-processors": "^0.5.4",
     "@subql/frontier-evm-processor": "^0.0.3-0",
     "@subql/moonbeam-evm-processor": "latest",
-    "@subql/node": "^1.1.2",
+    "@subql/node": "latest",
     "@subql/types": "latest",
     "@typescript-eslint/eslint-plugin": "^5.28.0",
     "@typescript-eslint/parser": "^5.28.0",
@@ -46,7 +46,8 @@
     "handlebars": "^4.7.7",
     "moonbeam-types-bundle": "latest",
     "mustache": "^4.2.0",
-    "typescript": "^4.0.0"
+    "typescript": "^4.0.0",
+    "web3-utils": "^1.7.4"
   },
   "exports": {
     "chaintypes": "./src/chaintypes.ts",

@@ -18,9 +18,9 @@ export class LiquidityPositionSnapshot implements Entity {
 
     public liquidityPositionId: string;
 
-    public timestamp: number;
+    public timestamp: bigint;
 
-    public block: number;
+    public block: bigint;
 
     public userId: string;
 
