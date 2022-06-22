@@ -1,4 +1,4 @@
-specVersion: 0.2.1
+specVersion: 1.0.0
 name: zenlink-exchange-subquery
 version: 1.0.0
 runner:
@@ -13,7 +13,7 @@ repository: https://github.com/zenlinkpro/zenlink-exchange-subquery
 schema:
   file: ./schema.graphql
 network:
-  genesisHash: '0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b'
+  chainId: '0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b'
   dictionary: 'https://api.subquery.network/sq/subquery/moonriver-dictionary'
   endpoint: wss://moonriver.api.onfinality.io/public-ws
   chaintypes:
