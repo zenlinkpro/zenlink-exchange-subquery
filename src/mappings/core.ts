@@ -174,7 +174,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
       burn.feeTo = mint.to
       burn.feeLiquidity = mint.liquidity
       // remove the logical mint
-      store.remove('Mint', mints[mints.length - 1])
+      await store.remove('Mint', mints[mints.length - 1])
       // update the transaction
 
       // TODO: Consider using .slice().pop() to protect against unintended

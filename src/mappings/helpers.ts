@@ -161,8 +161,6 @@ export async function createLiquiditySnapshot(position: LiquidityPosition, event
   const token0 = await Token.get(pair.token0Id)
   const token1 = await Token.get(pair.token1Id)
 
-  logger.info(event.blockNumber)
-
   // create new snapshot
   const snapshot = new LiquidityPositionSnapshot(position.id.concat(timestamp.toString()))
   snapshot.liquidityPositionId = position.id
