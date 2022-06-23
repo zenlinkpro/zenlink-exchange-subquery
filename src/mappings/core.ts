@@ -37,7 +37,7 @@ type SwapEventArgs = [string, BigNumber, BigNumber, BigNumber, BigNumber, string
   { sender: string, amount0In: BigNumber, amount1In: BigNumber, amount0Out: BigNumber, amount1Out: BigNumber, to: string }
 
 async function isCompleteMint(mintId: string): Promise<boolean> {
-  return !!(await MintEvent.get(mintId)).sender // sufficient checks
+  return !!((await MintEvent.get(mintId))?.sender) // sufficient checks
 }
 
 export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): Promise<void> {
@@ -85,7 +85,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     await pair.save()
 
     // create new mint if no mints so far or if last one is done already
-    if (mints.length === 0 || isCompleteMint(mints[mints.length - 1])) {
+    if (mints.length === 0 || (await isCompleteMint(mints[mints.length - 1]))) {
       const mint = new MintEvent(
         event.transactionHash
           .concat('-')
@@ -169,7 +169,7 @@ export async function handleTransfer(event: MoonbeamEvent<TransferEventArgs>): P
     }
 
     // if this logical burn included a fee mint, account for this
-    if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
+    if (mints.length !== 0 && !(await isCompleteMint(mints[mints.length - 1]))) {
       const mint = await MintEvent.get(mints[mints.length - 1])
       burn.feeTo = mint.to
       burn.feeLiquidity = mint.liquidity
