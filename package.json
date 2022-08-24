@@ -33,7 +33,7 @@
   "devDependencies": {
     "@polkadot/api": "^7.12.1",
     "@subql/cli": "latest",
-    "@subql/contract-processors": "^0.5.4",
+    "@subql/contract-processors": "^0.6.0",
     "@subql/frontier-evm-processor": "^0.0.3-0",
     "@subql/moonbeam-evm-processor": "latest",
     "@subql/node": "latest",

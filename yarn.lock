@@ -1498,12 +1498,12 @@
     reflect-metadata "^0.1.13"
     semver "^7.3.5"
 
-"@subql/contract-processors@^0.5.4":
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/@subql/contract-processors/-/contract-processors-0.5.4.tgz#64b6b7b52c27f2ab521f9c9be742ce87f5e7839f"
-  integrity sha512-nT6Om53/Y+5M7a2kDZSsp6el/xiPXfV1kFJBA4yKW9m+yNgXrpaaVrbqWApySQCE3vA37JURjv9bvVsrvW30zA==
+"@subql/contract-processors@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@subql/contract-processors/-/contract-processors-0.6.0.tgz#1a68f4ebd6477663e1f3900e48bc12431401b759"
+  integrity sha512-EDLNkpHnqtRbaXSv7FY0V4sMd2BeNgM9ZM8OeFv9jbH1Qt7Tk2fQdl4b3LZo1zR4ZbhgTGFvP09q9J0xKh3U8Q==
   dependencies:
-    "@subql/types" "0.14.0"
+    "@subql/types" "0.15.0"
     class-transformer "0.5.1"
     class-validator "^0.13.2"
     ethers "^5.5.4"
@@ -1592,10 +1592,10 @@
   resolved "https://registry.yarnpkg.com/@subql/types-terra/-/types-terra-0.4.0.tgz#09f70e6b8820fa98b9bf2f6807cde4476a179d5f"
   integrity sha512-+Qx9tPCAQpIF0u4jSnW5GbjZoVdpt4GJpkIp4hDao3uUS6Vs68ZbtNQCl+EMP0eU7WTHJjwWmTflPvf665SYaw==
 
-"@subql/types@0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@subql/types/-/types-0.14.0.tgz#a736b27aa5f0b40f92befc871b56d115d64bf442"
-  integrity sha512-J9GsAJ/Q7SH7HWV1DI3ORsi2T5+gFWm665iOpCNFOmsfuLNzrjjlyqoQhAaf45D8F8DeK/WooNnWFNPze8g1NQ==
+"@subql/types@0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@subql/types/-/types-0.15.0.tgz#6d5ab13c99a5a5f6898558c4ac6c8a753d9f12e6"
+  integrity sha512-53VWQaBqVnUGGXwQewkDHVFwD3JUZ/FlNd+MUwn+AKDxhLeBjcLrynfIJFZUmsAqMXYrgN66jTJO5XZuVPqAFw==
 
 "@subql/types@1.1.0", "@subql/types@^1.0.1-0", "@subql/types@latest":
   version "1.1.0"

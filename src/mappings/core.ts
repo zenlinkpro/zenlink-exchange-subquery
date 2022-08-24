@@ -314,6 +314,7 @@ export async function handleMint(event: MoonbeamEvent<MintEventArgs>): Promise<v
   )
   const transaction = await Transaction.get(event.transactionHash)
   const mints = transaction.mints
+  if (!mints.length) return
   const mint = await MintEvent.get(mints[mints.length - 1])
 
   const pair = await Pair.get(event.address)
